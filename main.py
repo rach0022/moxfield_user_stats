@@ -10,7 +10,10 @@ def download_edh_deck_list():
     # Transform the response into EDHDeckList objects
     user_deck_list = []
     for edh_deck in user_deck_list_response:
-        user_deck_list.append(MagicDeckList.from_json(edh_deck))
+        if edh_deck['format'] == "commander":
+            user_deck_list.append(MagicDeckList.from_json(edh_deck))
+
+    print(f"\nUser {user_name} has {len(user_deck_list)} Magic the Gathering Decks for EDH:")
 
     # Now with each MagicDeckList we can load the actual deck-lists from moxfield
     deck_cards_list = []
@@ -21,9 +24,7 @@ def download_edh_deck_list():
 
     # For now print out the stats of each deck while testing
     for validated_deck in deck_cards_list:
-        print(validated_deck)
-
-    # TODO: Find out how to get the exact quantities of each card
+        print("--", validated_deck)
 
 
 if __name__ == '__main__':
