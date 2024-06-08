@@ -1,10 +1,12 @@
+import heapq
 import json
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List
 
 import requests
 
-from utils import get_random_user_agent, COLOUR_NAMES, USD_TO_CDN_CONVERSION_RATE
+from utils import get_random_user_agent, COLOUR_NAMES
 
 
 @dataclass
@@ -15,6 +17,10 @@ class MagicCard:
     is_foil: bool
     converted_mana_cost: float = 0
     type: str = ""
+
+    @property
+    def is_land(self) -> bool:
+        return "Land" in self.type
 
     @staticmethod
     def from_json(card_name: str, attr: dict):
@@ -38,6 +44,7 @@ class MagicDeckList:
     name: str = ""
     format: str = ""
     url: str = ""
+    is_legal: bool = False
 
     @staticmethod
     def from_json(json_response):
@@ -46,48 +53,96 @@ class MagicDeckList:
             name=json_response["name"],
             colour_identity=json_response["colorIdentity"],
             url=json_response['publicUrl'],
+            is_legal=json_response['isLegal']
         )
 
 
 @dataclass
 class EDHDeckList(MagicDeckList):
+    name: str = ""
+    is_legal: bool = False
     main_board: List[MagicCard] = field(default_factory=lambda: [])
     commanders: List[MagicCard] = field(default_factory=lambda: [])
     companions: List[MagicCard] = field(default_factory=lambda: [])
     side_board: List[MagicCard] = field(default_factory=lambda: [])
     maybe_board: List[MagicCard] = field(default_factory=lambda: [])
     tokens: List[MagicCard] = field(default_factory=lambda: [])
+    created_at: datetime = datetime.now()
+    updated_at: datetime = datetime.now()
 
     def get_average_mana_cost(self):
         """Get the average mana cost of the deck without lands"""
         total_mana_cost = sum(card.converted_mana_cost for card in self.main_board)
+        total_mana_cost += sum(commander.converted_mana_cost for commander in self.commanders)
         total_lands = self.get_land_count()
         return total_mana_cost / (len(self.main_board) + len(self.commanders) + len(self.companions) - total_lands)
 
     def get_land_count(self):
-        return sum(card.quantity for card in list(filter(lambda card: "Land" in card.type, self.main_board)))
+        return sum(card.quantity for card in list(filter(lambda card: card.is_land, self.main_board)))
 
     @staticmethod
     def from_json(json_response):
         # First get a list of the commanders in the deck:
-        commanders = [commander for commander in json_response["commanders"].keys()]
+        # commanders = [commander for commander in json_response["commanders"].keys()]
         return EDHDeckList(
             id=json_response["id"],
             name=json_response["name"],
+            is_legal=json_response['is_legal'],
             colour_identity=json_response["colour_identity"],
             url=json_response['url'],
-            commanders=commanders,
+            commanders=to_cards(json_response['commanders']),
             companions=to_cards(json_response["companions"]),
             main_board=to_cards(json_response["mainboard"]),
             side_board=to_cards(json_response["sideboard"]),
             tokens=to_cards(json_response['tokens']),
+            created_at=json_response['createdAtUtc'],
+            updated_at=json_response['lastUpdatedAtUtc']
         )
 
     def __str__(self):
         main_board_count = sum([card.quantity for card in self.main_board])
         colour_identity = COLOUR_NAMES[''.join(self.colour_identity)]
-        commanders = ','.join([str(commander) for commander in self.commanders])
+        commanders = ','.join([str(commander.name) for commander in self.commanders])
         return f"{self.name} (Commander: {commanders}) | MainBoard: {main_board_count} | CI: {colour_identity} | Average CMC: {self.get_average_mana_cost()}"
+
+
+@dataclass
+class MoxFieldUser:
+    username: str = ""
+    profile_picture: str = ""
+    edh_decks: List[EDHDeckList] = field(default_factory=lambda: [])
+
+    def get_card_counts(self, include_lands=True):
+        """Get the counts for each card in every deck"""
+
+        # Set up a dict to track each card by the name as the key and the count as the value
+        card_counts_dict = dict()
+        for deck in self.edh_decks:
+            for commander in deck.commanders:
+                # If we find the Commander name in the dict then increment the value or initialize it to 1
+                if commander.name not in card_counts_dict:
+                    card_counts_dict[commander.name] = commander.quantity
+                else:
+                    card_counts_dict[commander.name] += commander.quantity
+
+            for card in deck.main_board:
+                # If we are not including lands, and we find a land card then skip this loop iteration
+                if not include_lands and card.is_land:
+                    continue
+
+                # If we find the Card name in the dict then increment the value or initialize it to 1
+                if card.name not in card_counts_dict:
+                    card_counts_dict[card.name] = card.quantity
+                else:
+                    card_counts_dict[card.name] += card.quantity
+        return card_counts_dict
+
+    def get_top_ten_cards(self, include_lands=False):
+        # First get the card counts from all the decks and ignore any lands (by default)
+        deck_card_counts = self.get_card_counts(include_lands=include_lands)
+
+        # Using heapq nlargest function we can get the 10 largest items from this dict
+        return heapq.nlargest(10, deck_card_counts.items(), key=lambda x: x[1])
 
 
 @dataclass
