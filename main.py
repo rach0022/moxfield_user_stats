@@ -1,7 +1,7 @@
 from core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser
 
 
-def download_edh_deck_list():
+def generate_moxfield_user():
     # First connect to the moxfield API and get all the user decks
     user_name = str(input("What is the username from Moxfield that you are checking?:\n"))
     moxfield_agent = MoxFieldAgent(user_name)
@@ -32,24 +32,27 @@ def download_edh_deck_list():
     for validated_deck in deck_cards_list:
         print("--", validated_deck)
 
-    return deck_cards_list, user_deck_list_response
-
-
-def generate_user_statistics():
-    edh_decks, moxfield_user_deck_list_response = download_edh_deck_list()
-    moxfield_user = MoxFieldUser(
-        username=moxfield_user_deck_list_response[0]['createdByUser']['displayName'],
-        profile_picture=moxfield_user_deck_list_response[0]['createdByUser'].get('profileImageUrl', ""),
-        edh_decks=edh_decks
+    return MoxFieldUser(
+        username=user_deck_list_response[0]['createdByUser']['displayName'],
+        profile_picture=user_deck_list_response[0]['createdByUser'].get('profileImageUrl', ""),
+        edh_decks=deck_cards_list
     )
-    # TODO: Now output the stats from the decks, average cmc of decks, average land count, etc
+
+
+def generate_moxfield_user_statistics():
+    """After generating a MoxFieldUser we can output the stats for average cmc, average land count, and more from across
+    all the edh decks."""
+    moxfield_user = generate_moxfield_user()
     print(f"\n User Statistics for {moxfield_user.username}:")
-    top_10_cards = moxfield_user.get_top_ten_cards()
+    top_10_cards = moxfield_user.get_top_ten_cards(include_lands=False)
 
     print(f"-- Top 10 Cards for {moxfield_user.username}:")
-    for card, value in top_10_cards:
-        print(f"---- {card} ({value})")
+    for counter, (card, value) in enumerate(top_10_cards):
+        print(f"---- Rank {counter + 1}. {card} ({value})")
+
+    print(f"-- AVG # Of Lands Across {len(moxfield_user.edh_decks)} Decks: {moxfield_user.get_average_land_count()}")
+    print(f"-- AVG CMC Across {len(moxfield_user.edh_decks)} Decks: {moxfield_user.get_average_cmc_across_all_decks()}")
 
 
 if __name__ == '__main__':
-    generate_user_statistics()
+    generate_moxfield_user_statistics()
