@@ -1,12 +1,9 @@
 import heapq
-import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List
 
-import requests
-
-from utils import get_random_user_agent, COLOUR_NAMES
+from utils import COLOUR_NAMES
 
 
 @dataclass
@@ -170,29 +167,6 @@ class MoxFieldUser:
         total_land_across_decks = sum(deck.get_land_count() for deck in self.edh_decks)
         denominator = total_cards_in_decks if include_lands else total_cards_in_decks - total_land_across_decks
         return total_mana_across_decks / denominator
-
-
-@dataclass
-class MoxFieldAgent:
-    username: str = ""
-
-    def get_user_decks(self):
-        mox_field_user_api_url = f"https://api.moxfield.com/v2/users/{self.username}/decks?pageNumber=1&pageSize=99999"
-        api_request = requests.get(mox_field_user_api_url, headers=self.generate_request_header())
-        json_response = json.loads(api_request.text)
-        return json_response['data']
-
-    def get_deck_list(self, deck_id: str):
-        mox_field_deck_api_url = f"https://api.moxfield.com/v2/decks/all/{deck_id}"
-        api_request = requests.get(mox_field_deck_api_url, headers=self.generate_request_header())
-        json_response = json.loads(api_request.text)
-        return json_response
-
-    @classmethod
-    def generate_request_header(cls):
-        return {
-            'USER-AGENT': get_random_user_agent()
-        }
 
 
 def to_cards(raw_cards: dict | list) -> List[MagicCard]:
