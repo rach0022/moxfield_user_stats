@@ -1,12 +1,13 @@
+import argparse
 from core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser
 from core.api.commander_spell_book import CommanderSpellBookAgent
 from exceptions import UserNotFoundException
 from utils.common import get_n_largest_items_from_count_dict
 
 
-def generate_moxfield_user():
+def generate_moxfield_user(user_name: str):
     # First connect to the moxfield API and get all the user decks
-    user_name = str(input("What is the username from Moxfield that you are checking?:\n"))
+    # user_name = str(input("What is the username from Moxfield that you are checking?:\n"))
     moxfield_agent = MoxFieldAgent(user_name)
     user_deck_list_response = moxfield_agent.get_user_decks()
     username = user_deck_list_response[0]['createdByUser']['displayName']
@@ -49,10 +50,10 @@ def find_combos_in_moxfield_user_decks(moxfield_user: MoxFieldUser) -> Commander
     return commander_spell_book_agent
 
 
-def generate_moxfield_user_statistics():
+def generate_moxfield_user_statistics(user_name: str):
     """After generating a MoxFieldUser we can output the stats for average cmc, average land count, and more from across
     all the edh decks."""
-    moxfield_user = generate_moxfield_user()
+    moxfield_user = generate_moxfield_user(user_name)
     print(f"\n User Statistics for {moxfield_user.username}:")
     top_10_cards = moxfield_user.get_top_ten_cards(include_lands=False)
 
@@ -116,6 +117,10 @@ def generate_moxfield_user_statistics():
 
 if __name__ == '__main__':
     try:
-        generate_moxfield_user_statistics()
+        # Set up the command line argument parser, so we can get the username as a named command line argument
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--username', '-f', help="The Username of the User on Moxfield", type=str)
+        args = parser.parse_args()
+        generate_moxfield_user_statistics(user_name=args.username)
     except UserNotFoundException as user_not_found_exception:
         print(user_not_found_exception)
