@@ -3,3 +3,4 @@ __pycache__/
 dist
 build
 */__pycache__/
+config/moxfield_user_stats_secrets.json
