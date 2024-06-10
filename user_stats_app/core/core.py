@@ -12,7 +12,9 @@ class MagicCard:
     quantity: int
     is_foil: bool
     converted_mana_cost: float = 0
+    moxfield_id: str = ""
     type: str = ""
+    image_url: str = ""
 
     @property
     def is_land(self) -> bool:
@@ -24,13 +26,26 @@ class MagicCard:
             attr = dict()
         try:
             if not scryfall_response:
+                # Build the moxfield ID to use for the image url mainly
+                moxfield_id = attr['id'] if "id" in attr else attr['card']['id']
+                image_url = f"https://assets.moxfield.net/cards/card-{moxfield_id}-art_crop.webp"
+
+                # If we have multiple card faces then we can set the moxfield id to the id of the front face
+                if 'card' in attr:
+                    if len(attr['card']['card_faces']) > 0:
+                        moxfield_id = attr['card']['card_faces'][0]['id']
+                        image_url = f"https://assets.moxfield.net/cards/card-face-{moxfield_id}-art_crop.webp"
+
+                # Finally return the magic card object
                 return MagicCard(
                     id=attr['scryfall_id'] if "scryfall_id" in attr else attr['card']['scryfall_id'],
+                    moxfield_id=moxfield_id,
                     name=card_name,
                     quantity=attr['quantity'] if "quantity" in attr else 1,
                     is_foil=attr['isFoil'] if "isFoil" in attr else False,
                     converted_mana_cost=attr['card'].get('cmc', 0) if "card" in attr else attr.get("cmc", 0),
-                    type=attr['card'].get('type_line', "") if "card" in attr else attr.get("type_line", "")
+                    type=attr['card'].get('type_line', "") if "card" in attr else attr.get("type_line", ""),
+                    image_url=image_url
                 )
             return MagicCard(
                 id=scryfall_response['id'],
@@ -38,7 +53,7 @@ class MagicCard:
                 quantity=scryfall_response['quantity'] if "quantity" in scryfall_response else 1,
                 is_foil=scryfall_response['foil'],
                 converted_mana_cost=scryfall_response['cmc'],
-                type=scryfall_response['type_line']
+                type=scryfall_response['type_line'],
             )
         except KeyError as key_error:
             print("key error with card", card_name, attr, key_error)

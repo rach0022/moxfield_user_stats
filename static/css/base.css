@@ -1,3 +1,12 @@
 .hidden {
     display: none;
 }
+
+.deck_label {
+    height: 100px;
+    text-align: center;
+}
+
+.deck_label p {
+    font-weight: bold;
+}
