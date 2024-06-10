@@ -1,8 +1,7 @@
 import argparse
-from core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser
-from core.api.commander_spell_book import CommanderSpellBookAgent
+from core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser, ScryfallAgent, CommanderSpellBookAgent
 from exceptions import UserNotFoundException
-from utils.common import get_n_largest_items_from_count_dict
+from utils import get_n_largest_items_from_count_dict, increment_count_dict
 
 
 def generate_moxfield_user(user_name: str):
@@ -85,6 +84,7 @@ def generate_moxfield_user_statistics(user_name: str):
 
     print(f"\n-- Top Cards Detected For Creating Combos in the Following Decks:")
     # Output stats about cards needed to make combos in decks and show top 10 cards to add for combos
+    cards_needed_for_combos_across_all_decks = dict()
     for deck in decks_with_potential_combos:
         # Start a List to count the occurrences of each card required for each deck
         card_needed_counts_dict = dict()
@@ -95,10 +95,8 @@ def generate_moxfield_user_statistics(user_name: str):
 
             # Count up the card counts for each card required for this deck
             for card in cards_needed:
-                if card not in card_needed_counts_dict:
-                    card_needed_counts_dict[card] = 1
-                else:
-                    card_needed_counts_dict[card] += 1
+                increment_count_dict(key=card, count_dict=card_needed_counts_dict, increment_amount=1)
+                increment_count_dict(key=card, count_dict=cards_needed_for_combos_across_all_decks, increment_amount=1)
 
         # Now get the top 10 cards needed
         top_five_cards_required = get_n_largest_items_from_count_dict(card_needed_counts_dict, 10)
@@ -112,7 +110,17 @@ def generate_moxfield_user_statistics(user_name: str):
             for counter, (card, combo_count) in enumerate(combos_found_in_deck_greater_then_1):
                 print(f"---- Rank {counter + 1}: {card} Was Detected in {combo_count} Combo(s)")
 
-        # TODO: Start creating web app and move all core/ main functionality to its own pkg
+    # Use Scryfall to get the data for the top ten cards required across all decks
+    top_ten_cards_required_across_all_decks = get_n_largest_items_from_count_dict(
+        count_dict=cards_needed_for_combos_across_all_decks, num_items=10
+    )
+
+    # With the top ten cards, make a request with the scryfall agent and output the response
+    scryfall_agent = ScryfallAgent()
+    for card, count in top_ten_cards_required_across_all_decks:
+        print(scryfall_agent.get_card_information(card, count=count))
+
+    # TODO: Start creating web app and move all core/ main functionality to its own pkg
 
 
 if __name__ == '__main__':
