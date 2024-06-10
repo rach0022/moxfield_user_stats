@@ -6,3 +6,5 @@ build
 config/moxfield_user_stats_secrets.json
 .idea/
 staticfiles/
+.DS_Store
+*/.DS_Store
