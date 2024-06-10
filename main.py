@@ -1,5 +1,6 @@
 import argparse
-from core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser, ScryfallAgent, CommanderSpellBookAgent
+from user_stats_app.core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser, ScryfallAgent, \
+    CommanderSpellBookAgent
 from exceptions import UserNotFoundException
 from utils import get_n_largest_items_from_count_dict, increment_count_dict
 

@@ -21,7 +21,7 @@ def increment_count_dict(key, count_dict, increment_amount):
 
 
 def to_magic_cards(raw_cards: dict | list = None, scryfall_response: dict = None):
-    from core.core import MagicCard
+    from user_stats_app.core.core import MagicCard
 
     if isinstance(raw_cards, list):
         return [MagicCard.from_json(card_data['name'], card_data) for card_data in raw_cards]

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block tab_title %}
-    Home
+    User Stats
 {% endblock %}
 
 {% block title %}
@@ -28,6 +28,13 @@
                 </div>
             </div>
         </form>
+    </div>
+    <div class="content">
+        <h4 class="title" id="found_decks_title">Found Decks (0)</h4>
+        <div class="grid" id="found_decks_list"></div>
+    </div>
+    <div class="content hidden" id="deck_statistics_section">
+        <h4 class="title">Statistics Across All Decks</h4>
     </div>
 {% endblock %}
 

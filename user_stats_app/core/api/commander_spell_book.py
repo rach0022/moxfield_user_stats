@@ -4,8 +4,8 @@ from typing import List
 
 import requests
 
-from core import EDHDeckList, MoxFieldUser
-from core.api.base import BaseAPIAgent
+from user_stats_app.core import EDHDeckList, MoxFieldUser
+from user_stats_app.core.api.base import BaseAPIAgent
 
 
 @dataclass

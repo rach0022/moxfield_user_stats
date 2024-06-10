@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import requests
-from core.api.base import BaseAPIAgent
+from user_stats_app.core.api.base import BaseAPIAgent
 from exceptions import ScryfallCardNotFoundException
 from utils import to_magic_cards
 

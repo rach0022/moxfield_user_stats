@@ -108,6 +108,22 @@ class EDHDeckList(MagicDeckList):
         card_names.extend([card.name for card in self.main_board])
         return card_names
 
+    def to_json(self):
+        return dict(
+            name=self.name,
+            is_legal=self.is_legal,
+            main_board=[main.__dict__ for main in self.main_board],
+            commanders=[commander.__dict__ for commander in self.commanders],
+            companions=[companion.__dict__ for companion in self.companions],
+            side_board=[side.__dict__ for side in self.side_board],
+            maybe_board=[maybe.__dict__ for maybe in self.maybe_board],
+            tokens=[token.__dict__ for token in self.tokens],
+            combos_found=self.combos_found,
+            potential_combos=self.potential_combos,
+            created_at=self.created_at,
+            updated_at=self.updated_at,
+        )
+
     @staticmethod
     def from_json(json_response):
         # First get a list of the commanders in the deck:
@@ -182,3 +198,10 @@ class MoxFieldUser:
         total_land_across_decks = sum(deck.get_land_count() for deck in self.edh_decks)
         denominator = total_cards_in_decks if include_lands else total_cards_in_decks - total_land_across_decks
         return total_mana_across_decks / denominator
+
+    def to_json(self):
+        return dict(
+            username=self.username,
+            profile_picture=self.profile_picture,
+            edh_decks=[deck.to_json() for deck in self.edh_decks]
+        )
