@@ -1,5 +1,5 @@
 from typing import List
-
+import heapq
 from core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser
 from core.api.commander_spell_book import CommanderSpellBookAgent
 
@@ -82,12 +82,34 @@ def generate_moxfield_user_statistics():
         if len(deck.potential_combos) > 0:
             print(f"---- {deck.name} Has {len(deck.potential_combos)} Potential Combos Detected")
 
-    # TODO: Output stats about cards needed to make combos in decks and show top 5 cards to add for combos
-    for deck in decks_with_potential_combos[0:1]:
+    print(f"\n-- Top Cards Detected For Creating Combos in the Following Decks:")
+    # Output stats about cards needed to make combos in decks and show top 10 cards to add for combos
+    for deck in decks_with_potential_combos:
+        # Start a List to count the occurrences of each card required for each deck
+        card_needed_counts_dict = dict()
         for combo in deck.potential_combos:
             # Create a list out the names for the cards in the combos and print the cards not in the deck
             cards_required_list = [card['card']['name'] for card in combo['uses']]
-            print(','.join(card for card in cards_required_list if card not in deck.get_card_names()))
+            cards_needed = [card for card in cards_required_list if card not in deck.get_card_names()]
+
+            # Count up the card counts for each card required for this deck
+            for card in cards_needed:
+                if card not in card_needed_counts_dict:
+                    card_needed_counts_dict[card] = 1
+                else:
+                    card_needed_counts_dict[card] += 1
+
+        # Now get the top 10 cards needed
+        top_five_cards_required = heapq.nlargest(10, card_needed_counts_dict.items(), key=lambda x: x[1])
+
+        # Now print out the stats for the top 10 cards needed if they are found in more than 1 combo
+        combos_found_in_deck_greater_then_1 = [(card, count) for (card, count) in top_five_cards_required if count > 1]
+        if len(combos_found_in_deck_greater_then_1) > 1:
+            print(
+                f"\n-- Top {len(combos_found_in_deck_greater_then_1)} Cards needed to get combos for Deck {deck.name}:"
+            )
+            for counter, (card, combo_count) in enumerate(combos_found_in_deck_greater_then_1):
+                print(f"---- Rank {counter + 1}: {card} Was Detected in {combo_count} Combo(s)")
 
 
 if __name__ == '__main__':
