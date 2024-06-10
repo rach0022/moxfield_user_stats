@@ -5,3 +5,4 @@ build
 */__pycache__/
 config/moxfield_user_stats_secrets.json
 .idea/
+staticfiles/

@@ -1,5 +1,5 @@
 {% extends 'user_stats_app/base.html' %}
-
+{% load static %}
 
 {% block tab_title %}
     Home
@@ -13,8 +13,24 @@
 {% endblock %}
 
 {% block content %}
-    <p>Find out the stats from your moxfield decks</p>
+    <div class="content">
+        <p>Find out the stats from your moxfield decks</p>
+        <form id="moxfield-username-search-input">
+            <label class="label" for="user_name_input">Moxfield Username</label>
+            <div class="field has-addons">
+                <div class="control is-expanded">
+                    <input class="input" type="text" placeholder="Search by Moxfield Username" id="user_name_input">
+                </div>
+                <div class="control">
+                    <button class="button is-info" id="search_moxfield_user_name">
+                        Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 {% endblock %}
 
 {% block scripts %}
+    <script src="{% static 'js/user_decks.js' %}"></script>
 {% endblock %}
