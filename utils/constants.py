@@ -48,3 +48,5 @@ COLOUR_NAMES = {
     "UBG": "Bug",
     "WRG": "Naya"
 }
+
+USD_TO_CDN_CONVERSION_RATE = 1.38
