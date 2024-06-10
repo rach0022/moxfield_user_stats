@@ -1,7 +1,11 @@
 from typing import List
 import heapq
+
+import requests.exceptions
+
 from core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser
 from core.api.commander_spell_book import CommanderSpellBookAgent
+from exceptions import UserNotFoundException
 
 
 def generate_moxfield_user():
@@ -111,6 +115,11 @@ def generate_moxfield_user_statistics():
             for counter, (card, combo_count) in enumerate(combos_found_in_deck_greater_then_1):
                 print(f"---- Rank {counter + 1}: {card} Was Detected in {combo_count} Combo(s)")
 
+        # TODO: Start creating web app and move all core/ main functionality to its own pkg
+
 
 if __name__ == '__main__':
-    generate_moxfield_user_statistics()
+    try:
+        generate_moxfield_user_statistics()
+    except UserNotFoundException as user_not_found_exception:
+        print(user_not_found_exception)
