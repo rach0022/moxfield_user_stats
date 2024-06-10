@@ -41,6 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Third Party Libraries
+    'bulma',
+    # Custom Django Apps
+    'user_stats_app.apps.UserStatsAppConfig',
 ]
 
 MIDDLEWARE = [
@@ -58,7 +62,9 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'user_stats_app', "templates")
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

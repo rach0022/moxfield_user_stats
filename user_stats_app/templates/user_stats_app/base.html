@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block tab_title %}Default Title{% endblock %}</title>
+    {% block imports %}
+        <!-- Add your CSS and other imports here -->
+    {% endblock %}
+</head>
+<body>
+<header>
+    <h1>{% block title %}Default Title{% endblock %}</h1>
+</header>
+<main>
+    {% block content %}
+        <!-- Main content goes here -->
+    {% endblock %}
+</main>
+<footer>
+    <!-- Footer content goes here -->
+</footer>
+{% block scripts %}
+    <!-- Add your scripts here -->
+{% endblock %}
+</body>
+</html>
