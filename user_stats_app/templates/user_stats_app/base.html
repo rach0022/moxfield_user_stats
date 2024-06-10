@@ -4,22 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block tab_title %}Default Title{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
     {% block imports %}
-        <!-- Add your CSS and other imports here -->
+        <!-- Add additional CSS and other imports here -->
     {% endblock %}
 </head>
 <body>
-<header>
-    <h1>{% block title %}Default Title{% endblock %}</h1>
-</header>
-<main>
-    {% block content %}
-        <!-- Main content goes here -->
-    {% endblock %}
-</main>
-<footer>
-    <!-- Footer content goes here -->
-</footer>
+<section class="section">
+    <div class="container">
+        <header>
+            <h1 class="title">{% block title %}Default Title{% endblock %}</h1>
+        </header>
+        <main>
+            {% block content %}
+                <!-- Main content goes here -->
+            {% endblock %}
+        </main>
+        <footer>
+            <!-- Footer content goes here -->
+        </footer>
+    </div>
+</section>
 {% block scripts %}
     <!-- Add your scripts here -->
 {% endblock %}

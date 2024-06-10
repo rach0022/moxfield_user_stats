@@ -41,9 +41,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # Third Party Libraries
-    'bulma',
-    # Custom Django Apps
+    # Third Party Libraries:
+    # Custom Django Apps:
     'user_stats_app.apps.UserStatsAppConfig',
 ]
 
