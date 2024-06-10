@@ -1,11 +1,7 @@
-from typing import List
-import heapq
-
-import requests.exceptions
-
 from core import MoxFieldAgent, EDHDeckList, MagicDeckList, MoxFieldUser
 from core.api.commander_spell_book import CommanderSpellBookAgent
 from exceptions import UserNotFoundException
+from utils.common import get_n_largest_items_from_count_dict
 
 
 def generate_moxfield_user():
@@ -104,7 +100,7 @@ def generate_moxfield_user_statistics():
                     card_needed_counts_dict[card] += 1
 
         # Now get the top 10 cards needed
-        top_five_cards_required = heapq.nlargest(10, card_needed_counts_dict.items(), key=lambda x: x[1])
+        top_five_cards_required = get_n_largest_items_from_count_dict(card_needed_counts_dict, 10)
 
         # Now print out the stats for the top 10 cards needed if they are found in more than 1 combo
         combos_found_in_deck_greater_then_1 = [(card, count) for (card, count) in top_five_cards_required if count > 1]

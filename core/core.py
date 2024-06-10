@@ -1,9 +1,9 @@
-import heapq
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List
 
 from utils import COLOUR_NAMES
+from utils.common import get_n_largest_items_from_count_dict
 
 
 @dataclass
@@ -167,7 +167,7 @@ class MoxFieldUser:
         deck_card_counts = self.get_card_counts(include_lands=include_lands)
 
         # Using heapq nlargest function we can get the 10 largest items from this dict
-        return heapq.nlargest(10, deck_card_counts.items(), key=lambda x: x[1])
+        return get_n_largest_items_from_count_dict(deck_card_counts, 10)
 
     def get_average_cmc_across_all_decks(self, include_lands=False):
         total_cards_in_decks = sum(deck.get_deck_size() for deck in self.edh_decks)
