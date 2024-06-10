@@ -64,6 +64,8 @@ class EDHDeckList(MagicDeckList):
     side_board: List[MagicCard] = field(default_factory=lambda: [])
     maybe_board: List[MagicCard] = field(default_factory=lambda: [])
     tokens: List[MagicCard] = field(default_factory=lambda: [])
+    combos_found: List[dict] = field(default_factory=lambda: [])
+    potential_combos: List[dict] = field(default_factory=lambda: [])
     created_at: datetime = datetime.now()
     updated_at: datetime = datetime.now()
 
@@ -89,6 +91,12 @@ class EDHDeckList(MagicDeckList):
 
     def get_land_count(self):
         return sum(card.quantity for card in list(filter(lambda card: card.is_land, self.main_board)))
+
+    def get_card_names(self):
+        card_names = [card.name for card in self.commanders]
+        card_names.extend([card.name for card in self.companions])
+        card_names.extend([card.name for card in self.main_board])
+        return card_names
 
     @staticmethod
     def from_json(json_response):

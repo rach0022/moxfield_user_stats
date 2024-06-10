@@ -3,11 +3,11 @@ from dataclasses import dataclass
 
 import requests
 
-from utils import get_random_user_agent
+from core.api.base import BaseAPIAgent
 
 
 @dataclass
-class MoxFieldAgent:
+class MoxFieldAgent(BaseAPIAgent):
     username: str = ""
 
     def get_user_decks(self):
@@ -21,9 +21,3 @@ class MoxFieldAgent:
         api_request = requests.get(mox_field_deck_api_url, headers=self.generate_request_header())
         json_response = json.loads(api_request.text)
         return json_response
-
-    @classmethod
-    def generate_request_header(cls):
-        return {
-            'USER-AGENT': get_random_user_agent()
-        }
