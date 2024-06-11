@@ -2,7 +2,7 @@ import json
 
 from django.http import JsonResponse
 from django.shortcuts import render
-from user_stats_app.core import MoxFieldAgent, MagicDeckList, EDHDeckList, MoxFieldUser
+from user_stats_app.core import MoxFieldAgent, MagicDeckList, EDHDeckList, MoxFieldUser, CommanderSpellBookAgent
 
 
 def home(request):
@@ -43,6 +43,11 @@ def search_user_decks(request):
             edh_decks=deck_cards_list
         )
 
+        # Show Combos/ Potential Combos for Each Deck by requesting all the combos from CommanderSpellBookAgent
+        # this will add on all the found combos to the EDHDeckList instances on the moxfield_user
+        CommanderSpellBookAgent.find_combos_in_moxfield_user_decks(moxfield_user=moxfield_user)
+        # TODO: Show an error message if the user was not found from moxfield
+        # TODO: Show Top Recommended Cards to add to get combos across all decks
         return JsonResponse(dict(
             moxfield_user=moxfield_user.to_json(),
             top_ten_cards=[card.to_json() for card in moxfield_user.get_top_ten_cards(include_lands=include_lands)],

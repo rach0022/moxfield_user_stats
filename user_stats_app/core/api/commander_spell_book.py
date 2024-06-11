@@ -33,3 +33,10 @@ class CommanderSpellBookAgent(BaseAPIAgent):
         )
         json_response = json.loads(find_my_combos_response.text)
         return json_response
+
+    @staticmethod
+    def find_combos_in_moxfield_user_decks(moxfield_user: MoxFieldUser):
+        """Create an instance of the CommanderSpellBook Agent and find all the user combos and return"""
+        commander_spell_book_agent = CommanderSpellBookAgent(moxfield_user)
+        commander_spell_book_agent.get_all_user_deck_combos()
+        return commander_spell_book_agent

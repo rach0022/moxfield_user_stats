@@ -93,6 +93,7 @@ class MagicDeckList:
 
 @dataclass
 class EDHDeckList(MagicDeckList):
+    id: str = ""
     name: str = ""
     is_legal: bool = False
     main_board: List[MagicCard] = field(default_factory=lambda: [])
@@ -137,6 +138,7 @@ class EDHDeckList(MagicDeckList):
 
     def to_json(self):
         return dict(
+            id=self.id,
             name=self.name,
             is_legal=self.is_legal,
             main_board=[main.__dict__ for main in self.main_board],
@@ -149,13 +151,17 @@ class EDHDeckList(MagicDeckList):
             potential_combos=self.potential_combos,
             created_at=self.created_at,
             updated_at=self.updated_at,
+            # Generated Fields
+            deck_size=self.get_deck_size(),
+            land_count=self.get_land_count(),
+            average_mana_cost=self.get_average_mana_cost()
         )
 
     @staticmethod
     def from_json(json_response):
         # First get a list of the commanders in the deck:
         return EDHDeckList(
-            id=json_response["id"],
+            id=json_response["publicId"],
             name=json_response["name"],
             is_legal=json_response['is_legal'],
             colour_identity=json_response["colour_identity"],

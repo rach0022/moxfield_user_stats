@@ -43,13 +43,6 @@ def generate_moxfield_user(user_name: str):
     )
 
 
-def find_combos_in_moxfield_user_decks(moxfield_user: MoxFieldUser) -> CommanderSpellBookAgent:
-    """Create an instance of the CommanderSpellBook Agent and find all the user combos and return"""
-    commander_spell_book_agent = CommanderSpellBookAgent(moxfield_user)
-    commander_spell_book_agent.get_all_user_deck_combos()
-    return commander_spell_book_agent
-
-
 def generate_moxfield_user_statistics(user_name: str):
     """After generating a MoxFieldUser we can output the stats for average cmc, average land count, and more from across
     all the edh decks."""
@@ -67,7 +60,7 @@ def generate_moxfield_user_statistics(user_name: str):
     print(f"-- AVG CMC Across {len(moxfield_user.edh_decks)} Decks: {moxfield_user.get_average_cmc_across_all_decks()}")
 
     # Now get all the user combos and output the number of combos in each deck
-    find_combos_in_moxfield_user_decks(moxfield_user=moxfield_user)
+    CommanderSpellBookAgent.find_combos_in_moxfield_user_decks(moxfield_user=moxfield_user)
     decks_with_combos = [deck for deck in moxfield_user.edh_decks if len(deck.combos_found) > 0]
     decks_with_potential_combos = [deck for deck in moxfield_user.edh_decks if len(deck.potential_combos) > 0]
 
