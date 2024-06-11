@@ -59,8 +59,8 @@ def generate_moxfield_user_statistics(user_name: str):
 
     # Show the stats for the top ten cards including their ranks
     print(f"-- Top 10 Cards for {moxfield_user.username}:")
-    for counter, (card, value) in enumerate(top_10_cards):
-        print(f"---- Rank {counter + 1}. {card} ({value})")
+    for counter, card in enumerate(top_10_cards):
+        print(f"---- Rank {counter + 1}. {card.name} ({card.quantity})")
 
     # Output the stats for average number of lands across all decks the average CMC
     print(f"-- AVG # Of Lands Across {len(moxfield_user.edh_decks)} Decks: {moxfield_user.get_average_land_count()}")
