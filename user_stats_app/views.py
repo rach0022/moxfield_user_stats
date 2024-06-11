@@ -14,13 +14,14 @@ def search_user_decks(request):
         # First connect to the moxfield API and get all the user decks
         data = json.loads(request.body)
         user_name = data.get('user_name')
+        include_lands = data.get('include_lands')
         moxfield_agent = MoxFieldAgent(user_name)
         user_deck_list_response = moxfield_agent.get_user_decks()
 
         # Transform the response into EDHDeckList objects
         user_deck_list = []
         for edh_deck in user_deck_list_response:
-            if edh_deck['format'] == "commander":
+            if edh_deck['format'] == "commander" and edh_deck['isLegal']:
                 user_deck_list.append(MagicDeckList.from_json(edh_deck))
 
         # Now with each MagicDeckList we can load the actual deck-lists from moxfield
@@ -42,4 +43,9 @@ def search_user_decks(request):
             edh_decks=deck_cards_list
         )
 
-        return JsonResponse(moxfield_user.to_json())
+        return JsonResponse(dict(
+            moxfield_user=moxfield_user.to_json(),
+            top_ten_cards=[card.to_json() for card in moxfield_user.get_top_ten_cards(include_lands=include_lands)],
+            average_lands=moxfield_user.get_average_land_count(),
+            average_cmc=moxfield_user.get_average_cmc_across_all_decks()
+        ))

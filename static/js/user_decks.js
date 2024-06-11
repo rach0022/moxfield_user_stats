@@ -1,79 +1,88 @@
 const userDecksApp = {
     init: () => {
-        // output to the console to show the js file is loaded
         console.log("User Decks App is initialized...");
 
-        // add the event listeners required for the application
         document.getElementById('search_moxfield_user_name').addEventListener(
             'click', userDecksApp.searchUserDecks
         );
+        document.getElementById('include_lands_checkbox').addEventListener(
+            'click', userDecksApp.searchUserDecks
+        );
     },
-    searchUserDecks: (clickEvent) => {
-        // First stop the event from bubbling up and the default form actions
-        clickEvent.stopPropagation();
-        clickEvent.preventDefault();
-
-        // Get the username from the input and show a loading wheel in the button
+    searchUserDecks: () => {
         const userName = document.getElementById('user_name_input').value;
-        clickEvent.currentTarget.classList.add('is-loading');
+        const includeLandsValue = document.getElementById('include_lands_checkbox').checked;
+        const searchButton = document.getElementById('search_moxfield_user_name');
+        searchButton.classList.add('is-loading');
 
-        // Send the request to the Django Backend
         fetch('/search', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': userDecksApp.getCsrfToken()  // Add CSRF token to headers
+                'X-CSRFToken': userDecksApp.getCsrfToken()
             },
-            body: JSON.stringify({ user_name: userName })
-        }).then(
-            response => response.json()
-        ).then(data => {
-            // Update the title for the found decks
-            document.getElementById('found_decks_title').textContent = `Found Decks (${data['edh_decks'].length})`;
-            // Now that we found the decks, list them all by name in the grid section
-            const gridSection = document.getElementById('found_decks_list');
-            gridSection.innerHTML = "";
+            body: JSON.stringify({ user_name: userName, include_lands: includeLandsValue })
+        }).then(response => response.json())
+            .then(userDecksApp.handleSearchResults)
+            .catch(error => console.error('Error:', error))
+            .finally(() => searchButton.classList.remove('is-loading'));
+    },
+    handleSearchResults: (data) => {
+        const decks = data['moxfield_user']['edh_decks'];
+        const deckCount = decks.length;
 
-            // Iterate over each deck and build the corresponding html to display them in the grid section
-            data['edh_decks'].forEach(deck => {
-                const commanderText = deck.commanders.map(commander => commander.name).join(",");
+        document.getElementById('found_decks_title').textContent = `Found Decks (${deckCount})`;
+        userDecksApp.populateDeckGrid(decks, 'found_decks_list', 'commanders');
 
-                // create the typography elements for the deck cell
-                const deckNameContainer = document.createElement('div');
-                deckNameContainer.className = 'deck_label';
-                const deckName = document.createElement('p');
-                deckName.textContent = deck['name'];
-                deckNameContainer.appendChild(deckName);
+        const statisticsSection = document.getElementById('deck_statistics_section');
+        if (deckCount > 0) {
+            statisticsSection.className = 'content';
+            userDecksApp.populateDeckGrid(
+                data['top_ten_cards'], 'top_ten_cards_list', 'card', true
+            );
+            document.getElementById('average_cmc_text').textContent = data['average_cmc'].toFixed(2);
+            document.getElementById('average_lands_text').textContent = data['average_lands'].toFixed(2);
+        } else {
+            statisticsSection.className = 'content hidden';
+        }
+    },
+    populateDeckGrid: (items, gridId, imageType, isTopTen = false) => {
+        const gridSection = document.getElementById(gridId);
+        gridSection.innerHTML = "";
 
-                const deckCommanderContainer = document.createElement('div');
-                deckCommanderContainer.className = 'deck_label';
-                const deckCommander = document.createElement('p');
-                deckCommander.textContent = commanderText;
-                deckCommanderContainer.appendChild(deckCommander);
-
-                // Create the deck cell
-                const deckCell = document.createElement('div');
-                deckCell.className = 'user_moxfield_deck';
-                deckCell.style.width = '300px';
-                deckCell.style.height = '200px';
-                deckCell.style.backgroundSize = 'cover';
-                deckCell.style.backgroundImage = `radial-gradient(transparent, rgb(0, 0, 0)), url("${deck['commanders'][0]['image_url']}")`;
-
-                // add the html nodes for each item in order of paint
-                deckCell.appendChild(deckNameContainer);
-                deckCell.appendChild(deckCommanderContainer);
-                gridSection.appendChild(deckCell);
-            });
-
-            // Optionally show the deck statistics section if we find decks
-            document.getElementById('deck_statistics_section').className = (data['edh_decks'].length > 0)
-                ? 'content'
-                : 'content hidden';
-        }).catch((error) => {
-            console.error('Error:', error);
-        }).finally(() => {
-            document.getElementById('search_moxfield_user_name').classList.remove('is-loading');
+        items.forEach((item, idx) => {
+            const imageUrl = (imageType === 'commanders') ? item['commanders'][0]['image_url'] : item['image_url'];
+            const deckCell = userDecksApp.createDeckCell(item, imageUrl, idx, isTopTen);
+            gridSection.appendChild(deckCell);
         });
+    },
+    createDeckCell: (item, imageUrl, idx, isTopTen) => {
+        const deckCell = document.createElement('div');
+        deckCell.className = 'user_moxfield_deck';
+        deckCell.style.width = '300px';
+        deckCell.style.height = '200px';
+        deckCell.style.backgroundSize = 'cover';
+        deckCell.style.backgroundImage = `radial-gradient(transparent, rgb(0, 0, 0)), url("${imageUrl}")`;
+
+        if (isTopTen) {
+            deckCell.appendChild(userDecksApp.createLabel(`${item.name} (${item['quantity']})`, true));
+            deckCell.appendChild(userDecksApp.createLabel(`Rank ${idx + 1}`));
+        } else {
+            const commanderText = item['commanders'].map(commander => commander.name).join(",");
+            deckCell.appendChild(userDecksApp.createLabel(item.name, true));
+            deckCell.appendChild(userDecksApp.createLabel(commanderText));
+        }
+        return deckCell;
+    },
+    createLabel: (text, title = false) => {
+        const container = document.createElement('div');
+        container.className = (title) ? 'deck_label sub_title' : 'deck_label';
+
+        const p = document.createElement('p');
+        p.textContent = text;
+        container.appendChild(p);
+
+        return container;
     },
     getCsrfToken: () => {
         let cookieValue = null;

@@ -15,7 +15,7 @@
 {% block content %}
     <div class="content">
         <p>Find out the stats from your moxfield decks</p>
-        <form id="moxfield-username-search-input">
+        <form onsubmit="event.preventDefault();" id="moxfield-username-search-input">
             <label class="label" for="user_name_input">Moxfield Username</label>
             <div class="field has-addons">
                 <div class="control is-expanded">
@@ -27,14 +27,24 @@
                     </button>
                 </div>
             </div>
+            <label class="checkbox" for="include_lands_checkbox">
+                <input type="checkbox" id="include_lands_checkbox" />
+                Include Lands
+            </label>
         </form>
     </div>
     <div class="content">
-        <h4 class="title" id="found_decks_title">Found Decks (0)</h4>
+        <h4 class="title" id="found_decks_title">Found Decks (0):</h4>
         <div class="grid is-col-min-12" id="found_decks_list"></div>
     </div>
     <div class="content hidden" id="deck_statistics_section">
-        <h4 class="title">Statistics Across All Decks</h4>
+        <h4 class="title">Statistics Across All Decks:</h4>
+        <h6 class="title">Average CMC </h6>
+        <p id="average_cmc_text"></p>
+        <h6 class="title">Average Lands </h6>
+        <p id="average_lands_text"></p>
+        <h6 class="title">Top 10 Cards Across All Decks:</h6>
+        <div class="grid is-col-min-12" id="top_ten_cards_list"></div>
     </div>
 {% endblock %}
 

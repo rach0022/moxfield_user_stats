@@ -20,6 +20,18 @@ class MagicCard:
     def is_land(self) -> bool:
         return "Land" in self.type
 
+    def to_json(self):
+        return dict(
+            id=self.id,
+            name=self.name,
+            quantity=self.quantity,
+            is_foil=self.is_foil,
+            converted_mana_cost=self.converted_mana_cost,
+            moxfield_id=self.moxfield_id,
+            type=self.type,
+            image_url=self.image_url
+        )
+
     @staticmethod
     def from_json(card_name: str = "", attr=None, scryfall_response=None):
         if attr is None:
@@ -205,7 +217,33 @@ class MoxFieldUser:
         deck_card_counts = self.get_card_counts(include_lands=include_lands)
 
         # Using heapq nlargest function we can get the 10 largest items from this dict
-        return get_n_largest_items_from_count_dict(deck_card_counts, 10)
+        top_ten_cards = get_n_largest_items_from_count_dict(deck_card_counts, 10)
+        top_ten_cards_list = []
+
+        for (card, count) in top_ten_cards:
+            # Find the magic card by name and return the MagicCard Instance
+            mtg_card = self.get_card_by_name(card, quantity_override=count)
+            if mtg_card:
+                top_ten_cards_list.append(mtg_card)
+
+        return top_ten_cards_list
+
+    def get_card_by_name(self, card_name: str, quantity_override=None) -> MagicCard | None:
+        """Find a MagicCard by name from the user's decks."""
+        for deck in self.edh_decks:
+            all_cards = [
+                *deck.main_board, *deck.commanders, *deck.companions, *deck.side_board,
+                *deck.maybe_board, *deck.tokens
+            ]
+            for card in all_cards:
+                if card.name == card_name:
+                    # If we supplied a quantity_override use that instead of the found cards value
+                    if quantity_override:
+                        updated_card = card
+                        updated_card.quantity = quantity_override
+                        return updated_card
+                    return card
+        return None
 
     def get_average_cmc_across_all_decks(self, include_lands=False):
         total_cards_in_decks = sum(deck.get_deck_size() for deck in self.edh_decks)
@@ -218,5 +256,5 @@ class MoxFieldUser:
         return dict(
             username=self.username,
             profile_picture=self.profile_picture,
-            edh_decks=[deck.to_json() for deck in self.edh_decks]
+            edh_decks=[deck.to_json() for deck in self.edh_decks if len(deck.commanders) > 0]
         )

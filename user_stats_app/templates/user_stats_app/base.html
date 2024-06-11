@@ -18,6 +18,26 @@
     {% endblock %}
 </head>
 <body>
+<nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+            <img src="{% static 'img/android-chrome-512x512.png' %}" alt="Logo" width="28" height="28">
+        </a>
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navBar">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+
+    <div id="navBar" class="navbar-menu">
+        <div class="navbar-end">
+            <a class="navbar-item" href="/">
+                Home
+            </a>
+        </div>
+    </div>
+</nav>
 <section class="section">
     <div class="container">
         <header>
@@ -28,11 +48,13 @@
                 <!-- Main content goes here -->
             {% endblock %}
         </main>
-        <footer>
-            <!-- Footer content goes here -->
-        </footer>
     </div>
 </section>
+<footer class="footer">
+    <div class="content has-text-centered">
+        <p><strong>Moxfield User Stats</strong> by <a href="https://github.com/rach0022">rach0022</a></p>
+    </div>
+</footer>
 <script src="{% static 'js/bulmaJS/dist/bulma.js' %}"></script>
 {% block scripts %}
     <!-- Add your scripts here -->
