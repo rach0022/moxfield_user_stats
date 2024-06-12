@@ -25,7 +25,14 @@ const userDecksApp = {
             },
             body: JSON.stringify({ user_name: userName, include_lands: includeLandsValue })
         }).then(response => response.json())
-            .then(userDecksApp.handleSearchResults)
+            .then(data => {
+                console.log(data);
+                if (data['error']) {
+                    userDecksApp.showErrorNotification(data['error']);
+                } else {
+                    userDecksApp.handleSearchResults(data);
+                }
+            })
             .catch(error => console.error('Error:', error))
             .finally(() => searchButton.classList.remove('is-loading'));
     },
@@ -195,6 +202,31 @@ const userDecksApp = {
             }
         }
         return cookieValue;
+    },
+    showErrorNotification: (errorMessage) => {
+        // Create a Bulma Notification and add it to the DOM
+        const notificationNode = document.createElement('div');
+        notificationNode.className = 'notification is-danger is-light';
+
+        // Create the delete button and add the click listener to it
+        const notificationDeleteButton = document.createElement('button');
+        notificationDeleteButton.className = 'delete';
+        notificationDeleteButton.addEventListener('click', bulmaNotificationApp.handleCloseModal);
+
+        // Add the button to the notification and then update the inner html with the error message
+        const notificationText = document.createElement('p');
+        notificationText.textContent = errorMessage;
+        notificationNode.appendChild(notificationDeleteButton);
+        notificationNode.appendChild(notificationText);
+
+        // Now show the notification before the main section
+        const mainSection = document.getElementById('main_section');
+        mainSection.parentNode.insertBefore(notificationNode, mainSection);
+
+        // start a timeOut to delete the notification after 3 seconds
+        setTimeout(() => {
+            notificationNode.parentNode.removeChild(notificationNode);
+        }, 3000);
     }
 };
 

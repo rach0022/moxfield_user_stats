@@ -2,7 +2,10 @@ import json
 
 from django.http import JsonResponse
 from django.shortcuts import render
+
+from exceptions import UserNotFoundException
 from user_stats_app.core import MoxFieldAgent, MagicDeckList, EDHDeckList, MoxFieldUser, CommanderSpellBookAgent
+from utils import time_function
 
 
 def home(request):
@@ -16,7 +19,12 @@ def search_user_decks(request):
         user_name = data.get('user_name')
         include_lands = data.get('include_lands')
         moxfield_agent = MoxFieldAgent(user_name)
-        user_deck_list_response = moxfield_agent.get_user_decks()
+
+        # Try to get the user decks from the searched username and check if they exist or return an error
+        try:
+            user_deck_list_response = moxfield_agent.get_user_decks()
+        except UserNotFoundException as error:
+            return JsonResponse(dict(error=str(error)))
 
         # Transform the response into EDHDeckList objects
         user_deck_list = []
@@ -45,8 +53,7 @@ def search_user_decks(request):
 
         # Show Combos/ Potential Combos for Each Deck by requesting all the combos from CommanderSpellBookAgent
         # this will add on all the found combos to the EDHDeckList instances on the moxfield_user
-        CommanderSpellBookAgent.find_combos_in_moxfield_user_decks(moxfield_user=moxfield_user)
-        # TODO: Show an error message if the user was not found from moxfield
+        time_function(CommanderSpellBookAgent.find_combos_in_moxfield_user_decks, moxfield_user=moxfield_user)
         # TODO: Show Top Recommended Cards to add to get combos across all decks
         return JsonResponse(dict(
             moxfield_user=moxfield_user.to_json(),
