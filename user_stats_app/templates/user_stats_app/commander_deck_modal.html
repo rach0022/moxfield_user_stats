@@ -1,0 +1,29 @@
+<div class="modal" id="commander_deck_modal">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+        <header class="modal-card-head">
+            <p class="modal-card-title" id="commander_deck_modal_title">EDH Deck</p>
+            <button class="delete" aria-label="close"></button>
+        </header>
+        <section class="modal-card-body">
+            <div class="content">
+                <h3>Deck Size</h3>
+                <p id="commander_deck_modal_count"></p>
+                <h3>Average Mana Cost (Without Lands)</h3>
+                <p id="commander_deck_modal_average_cmc"></p>
+                {# COMBOS FOUND LIST#}
+                <h3 id="commander_deck_modal_combo_list_title">Combos Found</h3>
+                <div id="commander_deck_modal_combo_list"></div>
+                {# POTENTIAL COMBOS FOUND LIST #}
+                <h3 id="commander_deck_modal_potential_combo_list_title">Potential Combos Found</h3>
+                <div id="commander_deck_modal_potential_combo_list"></div>
+            </div>
+        </section>
+        <footer class="modal-card-foot">
+            <div class="buttons">
+                <button class="button">Close</button>
+            </div>
+        </footer>
+    </div>
+    <button class="modal-close is-large" aria-label="close"></button>
+</div>

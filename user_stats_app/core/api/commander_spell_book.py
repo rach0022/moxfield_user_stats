@@ -4,8 +4,8 @@ from typing import List
 
 import requests
 
-from core import EDHDeckList, MoxFieldUser
-from core.api.base import BaseAPIAgent
+from user_stats_app.core import EDHDeckList, MoxFieldUser
+from user_stats_app.core.api.base import BaseAPIAgent
 
 
 @dataclass
@@ -33,3 +33,10 @@ class CommanderSpellBookAgent(BaseAPIAgent):
         )
         json_response = json.loads(find_my_combos_response.text)
         return json_response
+
+    @staticmethod
+    def find_combos_in_moxfield_user_decks(moxfield_user: MoxFieldUser):
+        """Create an instance of the CommanderSpellBook Agent and find all the user combos and return"""
+        commander_spell_book_agent = CommanderSpellBookAgent(moxfield_user)
+        commander_spell_book_agent.get_all_user_deck_combos()
+        return commander_spell_book_agent

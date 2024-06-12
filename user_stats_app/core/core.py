@@ -2,8 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List
 
-from utils import COLOUR_NAMES
-from utils.common import get_n_largest_items_from_count_dict
+from utils import COLOUR_NAMES, get_n_largest_items_from_count_dict, increment_count_dict, to_magic_cards
 
 
 @dataclass
@@ -13,22 +12,61 @@ class MagicCard:
     quantity: int
     is_foil: bool
     converted_mana_cost: float = 0
+    moxfield_id: str = ""
     type: str = ""
+    image_url: str = ""
 
     @property
     def is_land(self) -> bool:
         return "Land" in self.type
 
+    def to_json(self):
+        return dict(
+            id=self.id,
+            name=self.name,
+            quantity=self.quantity,
+            is_foil=self.is_foil,
+            converted_mana_cost=self.converted_mana_cost,
+            moxfield_id=self.moxfield_id,
+            type=self.type,
+            image_url=self.image_url
+        )
+
     @staticmethod
-    def from_json(card_name: str, attr: dict):
+    def from_json(card_name: str = "", attr=None, scryfall_response=None):
+        if attr is None:
+            attr = dict()
         try:
+            if not scryfall_response:
+                # Build the moxfield ID to use for the image url mainly
+                moxfield_id = attr['id'] if "id" in attr else attr['card']['id']
+                image_url = f"https://assets.moxfield.net/cards/card-{moxfield_id}-art_crop.webp"
+
+                # If we have multiple card faces then we can set the moxfield id to the id of the front face
+                if 'card' in attr:
+                    if len(attr['card']['card_faces']) > 0:
+                        moxfield_id = attr['card']['card_faces'][0]['id']
+                        image_url = f"https://assets.moxfield.net/cards/card-face-{moxfield_id}-art_crop.webp"
+
+                # Finally return the magic card object
+                return MagicCard(
+                    id=attr['scryfall_id'] if "scryfall_id" in attr else attr['card']['scryfall_id'],
+                    moxfield_id=moxfield_id,
+                    name=card_name,
+                    quantity=attr['quantity'] if "quantity" in attr else 1,
+                    is_foil=attr['isFoil'] if "isFoil" in attr else False,
+                    converted_mana_cost=attr['card'].get('cmc', 0) if "card" in attr else attr.get("cmc", 0),
+                    type=attr['card'].get('type_line', "") if "card" in attr else attr.get("type_line", ""),
+                    image_url=image_url
+                )
             return MagicCard(
-                id=attr['scryfall_id'] if "scryfall_id" in attr else attr['card']['scryfall_id'],
-                name=card_name,
-                quantity=attr['quantity'] if "quantity" in attr else 1,
-                is_foil=attr['isFoil'] if "isFoil" in attr else False,
-                converted_mana_cost=attr['card'].get('cmc', 0) if "card" in attr else attr.get("cmc", 0),
-                type=attr['card'].get('type_line', "") if "card" in attr else attr.get("type_line", "")
+                id=scryfall_response['id'],
+                name=scryfall_response['name'],
+                quantity=scryfall_response['quantity'] if "quantity" in scryfall_response else 1,
+                is_foil=scryfall_response['foil'],
+                converted_mana_cost=scryfall_response['cmc'],
+                type=scryfall_response['type_line'],
+                image_url=scryfall_response['image_uris']['normal']
             )
         except KeyError as key_error:
             print("key error with card", card_name, attr, key_error)
@@ -56,6 +94,7 @@ class MagicDeckList:
 
 @dataclass
 class EDHDeckList(MagicDeckList):
+    id: str = ""
     name: str = ""
     is_legal: bool = False
     main_board: List[MagicCard] = field(default_factory=lambda: [])
@@ -98,20 +137,41 @@ class EDHDeckList(MagicDeckList):
         card_names.extend([card.name for card in self.main_board])
         return card_names
 
+    def to_json(self):
+        return dict(
+            id=self.id,
+            name=self.name,
+            is_legal=self.is_legal,
+            main_board=[main.__dict__ for main in self.main_board],
+            commanders=[commander.__dict__ for commander in self.commanders],
+            companions=[companion.__dict__ for companion in self.companions],
+            side_board=[side.__dict__ for side in self.side_board],
+            maybe_board=[maybe.__dict__ for maybe in self.maybe_board],
+            tokens=[token.__dict__ for token in self.tokens],
+            combos_found=self.combos_found,
+            potential_combos=self.potential_combos,
+            created_at=self.created_at,
+            updated_at=self.updated_at,
+            # Generated Fields
+            deck_size=self.get_deck_size(),
+            land_count=self.get_land_count(),
+            average_mana_cost=self.get_average_mana_cost()
+        )
+
     @staticmethod
     def from_json(json_response):
         # First get a list of the commanders in the deck:
         return EDHDeckList(
-            id=json_response["id"],
+            id=json_response["publicId"],
             name=json_response["name"],
             is_legal=json_response['is_legal'],
             colour_identity=json_response["colour_identity"],
             url=json_response['url'],
-            commanders=to_cards(json_response['commanders']),
-            companions=to_cards(json_response["companions"]),
-            main_board=to_cards(json_response["mainboard"]),
-            side_board=to_cards(json_response["sideboard"]),
-            tokens=to_cards(json_response['tokens']),
+            commanders=to_magic_cards(json_response['commanders']),
+            companions=to_magic_cards(json_response["companions"]),
+            main_board=to_magic_cards(json_response["mainboard"]),
+            side_board=to_magic_cards(json_response["sideboard"]),
+            tokens=to_magic_cards(json_response['tokens']),
             created_at=json_response['createdAtUtc'],
             updated_at=json_response['lastUpdatedAtUtc']
         )
@@ -137,10 +197,9 @@ class MoxFieldUser:
         for deck in self.edh_decks:
             for commander in deck.commanders:
                 # If we find the Commander name in the dict then increment the value or initialize it to 1
-                if commander.name not in card_counts_dict:
-                    card_counts_dict[commander.name] = commander.quantity
-                else:
-                    card_counts_dict[commander.name] += commander.quantity
+                increment_count_dict(
+                    key=commander.name, count_dict=card_counts_dict, increment_amount=commander.quantity
+                )
 
             for card in deck.main_board:
                 # If we are not including lands, and we find a land card then skip this loop iteration
@@ -148,10 +207,8 @@ class MoxFieldUser:
                     continue
 
                 # If we find the Card name in the dict then increment the value or initialize it to 1
-                if card.name not in card_counts_dict:
-                    card_counts_dict[card.name] = card.quantity
-                else:
-                    card_counts_dict[card.name] += card.quantity
+                increment_count_dict(key=card.name, count_dict=card_counts_dict, increment_amount=card.quantity)
+
         return card_counts_dict
 
     def get_average_land_count(self):
@@ -167,7 +224,33 @@ class MoxFieldUser:
         deck_card_counts = self.get_card_counts(include_lands=include_lands)
 
         # Using heapq nlargest function we can get the 10 largest items from this dict
-        return get_n_largest_items_from_count_dict(deck_card_counts, 10)
+        top_ten_cards = get_n_largest_items_from_count_dict(deck_card_counts, 10)
+        top_ten_cards_list = []
+
+        for (card, count) in top_ten_cards:
+            # Find the magic card by name and return the MagicCard Instance
+            mtg_card = self.get_card_by_name(card, quantity_override=count)
+            if mtg_card:
+                top_ten_cards_list.append(mtg_card)
+
+        return top_ten_cards_list
+
+    def get_card_by_name(self, card_name: str, quantity_override=None) -> MagicCard | None:
+        """Find a MagicCard by name from the user's decks."""
+        for deck in self.edh_decks:
+            all_cards = [
+                *deck.main_board, *deck.commanders, *deck.companions, *deck.side_board,
+                *deck.maybe_board, *deck.tokens
+            ]
+            for card in all_cards:
+                if card.name == card_name:
+                    # If we supplied a quantity_override use that instead of the found cards value
+                    if quantity_override:
+                        updated_card = card
+                        updated_card.quantity = quantity_override
+                        return updated_card
+                    return card
+        return None
 
     def get_average_cmc_across_all_decks(self, include_lands=False):
         total_cards_in_decks = sum(deck.get_deck_size() for deck in self.edh_decks)
@@ -176,9 +259,9 @@ class MoxFieldUser:
         denominator = total_cards_in_decks if include_lands else total_cards_in_decks - total_land_across_decks
         return total_mana_across_decks / denominator
 
-
-def to_cards(raw_cards: dict | list) -> List[MagicCard]:
-    if isinstance(raw_cards, list):
-        return [MagicCard.from_json(card_data['name'], card_data) for card_data in raw_cards]
-    # If raw data for cards is given as a dict object with they key as the card name and the value as the attributes
-    return [MagicCard.from_json(card_name, attributes) for card_name, attributes in raw_cards.items()]
+    def to_json(self):
+        return dict(
+            username=self.username,
+            profile_picture=self.profile_picture,
+            edh_decks=[deck.to_json() for deck in self.edh_decks if len(deck.commanders) > 0]
+        )

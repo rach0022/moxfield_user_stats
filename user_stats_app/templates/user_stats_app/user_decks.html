@@ -1,0 +1,57 @@
+{% extends 'user_stats_app/base.html' %}
+{% load static %}
+
+{% block tab_title %}
+    User Stats
+{% endblock %}
+
+{% block title %}
+    Moxfield User Stats
+{% endblock %}
+
+{% block imports %}
+{% endblock %}
+
+{% block content %}
+    <div class="content">
+        <p>Find out the stats from your moxfield decks</p>
+        <form onsubmit="event.preventDefault();" id="moxfield-username-search-input">
+            <label class="label" for="user_name_input">Moxfield Username</label>
+            <div class="field has-addons">
+                <div class="control is-expanded">
+                    <input class="input" type="text" placeholder="Search by Moxfield Username" id="user_name_input">
+                </div>
+                <div class="control">
+                    <button class="button is-info" id="search_moxfield_user_name">
+                        Search
+                    </button>
+                </div>
+            </div>
+            <label class="checkbox" for="include_lands_checkbox">
+                <input type="checkbox" id="include_lands_checkbox" />
+                Include Lands
+            </label>
+        </form>
+    </div>
+    <div class="content">
+        <h4 class="title" id="found_decks_title">Found Decks (0):</h4>
+        <div class="grid is-col-min-12" id="found_decks_list"></div>
+    </div>
+    <div class="content hidden" id="deck_statistics_section">
+        <h4 class="title">Statistics Across All Decks:</h4>
+        <h6 class="title">Average CMC </h6>
+        <p id="average_cmc_text"></p>
+        <h6 class="title">Average Lands </h6>
+        <p id="average_lands_text"></p>
+        <h6 class="title">Top 10 Cards Across All Decks:</h6>
+        <div class="grid is-col-min-12" id="top_ten_cards_list"></div>
+        <h6 class="title">Top 10 Cards for Potential Combos Across All Decks</h6>
+        <div class="grid is-col-min-12" id="top_ten_cards_for_potential_combos_list"></div>
+    </div>
+
+    {% include 'user_stats_app/commander_deck_modal.html' %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/user_decks.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'img/site.webmanifest' %}">
+    <title>{% block tab_title %}Default Title{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block imports %}
+        <!-- Add additional CSS and other imports here -->
+    {% endblock %}
+</head>
+<body>
+<nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+            <img src="{% static 'img/android-chrome-512x512.png' %}" alt="Logo" width="28" height="28">
+        </a>
+        <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navBar">
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+        </a>
+    </div>
+
+    <div id="navBar" class="navbar-menu">
+        <div class="navbar-end">
+            <a class="navbar-item" href="/">
+                Home
+            </a>
+        </div>
+    </div>
+</nav>
+<section class="section" id="main_section">
+    <div class="container">
+        <header>
+            <h1 class="title">{% block title %}Default Title{% endblock %}</h1>
+        </header>
+        <main>
+            {% block content %}
+                <!-- Main content goes here -->
+            {% endblock %}
+        </main>
+    </div>
+</section>
+<footer class="footer">
+    <div class="content has-text-centered">
+        <p><strong>Moxfield User Stats</strong> by <a href="https://github.com/rach0022">rach0022</a></p>
+    </div>
+</footer>
+<script src="{% static 'js/bulma_modal.js' %}"></script>
+<script src="{% static 'js/bulma_notification.js' %}"></script>
+{% block scripts %}
+    <!-- Add your scripts here -->
+{% endblock %}
+</body>
+</html>
