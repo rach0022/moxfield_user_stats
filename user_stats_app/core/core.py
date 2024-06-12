@@ -66,6 +66,7 @@ class MagicCard:
                 is_foil=scryfall_response['foil'],
                 converted_mana_cost=scryfall_response['cmc'],
                 type=scryfall_response['type_line'],
+                image_url=scryfall_response['image_uris']['normal']
             )
         except KeyError as key_error:
             print("key error with card", card_name, attr, key_error)

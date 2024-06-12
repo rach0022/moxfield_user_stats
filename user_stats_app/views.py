@@ -4,7 +4,8 @@ from django.http import JsonResponse
 from django.shortcuts import render
 
 from exceptions import UserNotFoundException
-from user_stats_app.core import MoxFieldAgent, MagicDeckList, EDHDeckList, MoxFieldUser, CommanderSpellBookAgent
+from user_stats_app.core import MoxFieldAgent, MagicDeckList, EDHDeckList, MoxFieldUser, CommanderSpellBookAgent, \
+    ScryfallAgent
 from utils import time_function
 
 
@@ -60,4 +61,26 @@ def search_user_decks(request):
             top_ten_cards=[card.to_json() for card in moxfield_user.get_top_ten_cards(include_lands=include_lands)],
             average_lands=moxfield_user.get_average_land_count(),
             average_cmc=moxfield_user.get_average_cmc_across_all_decks()
+        ))
+
+
+def get_card_scryfall_info(request):
+    if request.method == "POST":
+        # Get the list of cards to find from the request body
+        data = json.loads(request.body)
+        cards_to_find_list = data.get('cards_to_find', [])
+
+        # Create an instance of the Scryfall agent, so we can request the card info
+        scryfall_agent = ScryfallAgent()
+
+        # Build a list of all the found card info from Scryfall
+        found_cards_list = []
+        for card_info in cards_to_find_list:
+            found_cards_list.append(
+                scryfall_agent.get_card_information(card_name=card_info[0], count=card_info[1]).to_json()
+            )
+
+        # Return the response of all the cards info
+        return JsonResponse(dict(
+            found_cards=found_cards_list
         ))

@@ -1,27 +1,26 @@
 const userDecksApp = {
     moxfieldUser: null,
+    cardCountsInPotentialCombos: null,
+    top10CardsInPotentialCombos: null,
     init: () => {
         console.log("User Decks App is initialized...");
 
-        document.getElementById('search_moxfield_user_name').addEventListener(
-            'click', userDecksApp.searchUserDecks
-        );
-        document.getElementById('include_lands_checkbox').addEventListener(
-            'click', userDecksApp.searchUserDecks
-        );
+        document.getElementById('search_moxfield_user_name').addEventListener('click', userDecksApp.searchUserDecks);
+        document.getElementById('include_lands_checkbox').addEventListener('click', userDecksApp.searchUserDecks);
     },
     searchUserDecks: () => {
         const userName = document.getElementById('user_name_input').value;
         const includeLandsValue = document.getElementById('include_lands_checkbox').checked;
         const searchButton = document.getElementById('search_moxfield_user_name');
         userDecksApp.moxfieldUser = null;
+        userDecksApp.cardCountsInPotentialCombos = null;
+        userDecksApp.top10CardsInPotentialCombos = null;
         searchButton.classList.add('is-loading');
 
         fetch('/search', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': userDecksApp.getCsrfToken()
+                'Content-Type': 'application/json', 'X-CSRFToken': userDecksApp.getCsrfToken()
             },
             body: JSON.stringify({ user_name: userName, include_lands: includeLandsValue })
         }).then(response => response.json())
@@ -35,6 +34,31 @@ const userDecksApp = {
             })
             .catch(error => console.error('Error:', error))
             .finally(() => searchButton.classList.remove('is-loading'));
+    },
+    // function to request the information for the top ten cards found in potential combos
+    searchPotentialComboCards: () => {
+        if (!userDecksApp.top10CardsInPotentialCombos) {
+            return;
+        }
+
+        // If we have the top ten cards, make the list of cards from the top ten and format it for the request
+        const cardToFindArray = userDecksApp.top10CardsInPotentialCombos.map(card => [card[0], card[1]['count']]);
+
+        // Make the post request to the back-end to get the scryfall info
+        fetch('/get_card_scryfall_info', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', 'X-CSRFToken': userDecksApp.getCsrfToken()
+            },
+            body: JSON.stringify({ 'cards_to_find': cardToFindArray })
+        }).then(response => response.json())
+            .then(data => {
+                // Build the grid cells for the top ten cards to add for potential combos list
+                userDecksApp.populateDeckGrid(
+                    data['found_cards'], 'top_ten_cards_for_potential_combos_list', 'card',
+                    true, true
+                );
+            }).catch(err => console.error("There was an error getting Scryfall Info for Top 10 Cards", err));
     },
     // General function to set combo list title
     setComboListTitle: (comboListTitleNode, title, count) => {
@@ -106,13 +130,7 @@ const userDecksApp = {
         const potentialComboListNode = document.getElementById('commander_deck_modal_potential_combo_list');
 
         // To show the card that is required build a list of all the card names in the selected deck
-        const commanderNamesArray = selectedDeck['commanders'].map(commander => commander.name);
-        const companionNamesArray = selectedDeck['companions'].map(companion => companion.name);
-        const cardNamesArray = selectedDeck['main_board'].map(card => card.name);
-        userDecksApp.createComboListItems(
-            potentialComboListNode, selectedDeck['potential_combos'],
-            [...commanderNamesArray, ...companionNamesArray, ...cardNamesArray]
-        );
+        userDecksApp.createComboListItems(potentialComboListNode, selectedDeck['potential_combos'], userDecksApp.getCardNamesInDeck(selectedDeck));
 
         // Show the modal
         const modalScreen = document.getElementById('commander_deck_modal');
@@ -120,7 +138,12 @@ const userDecksApp = {
             modalScreen.classList.add('is-active');
         }
     },
-
+    getCardNamesInDeck: (edhDeck) => {
+        const commanderNamesArray = edhDeck['commanders'].map(commander => commander.name);
+        const companionNamesArray = edhDeck['companions'].map(companion => companion.name);
+        const cardNamesArray = edhDeck['main_board'].map(card => card.name);
+        return [...commanderNamesArray, ...companionNamesArray, ...cardNamesArray];
+    },
     handleSearchResults: (data) => {
         // First set the response data to the application to be used later when opening modals
         userDecksApp.moxfieldUser = data['moxfield_user'];
@@ -141,27 +164,44 @@ const userDecksApp = {
         } else {
             statisticsSection.className = 'content hidden';
         }
+
+        // Set the card counts from the potential combos to the userDecksApp
+        userDecksApp.cardCountsInPotentialCombos = userDecksApp.countCardsInPotentialCombos();
+
+        // Now get the top ten cards from the cards in potential combos
+        // First convert the counts object into an array
+        const countCountsItems = Object.entries(userDecksApp.cardCountsInPotentialCombos);
+
+        // Sort the array based on the values
+        const sortedCardCountsArray = countCountsItems.sort((a, b) => b[1]['count'] - a[1]['count']);
+
+        // Set the top ten cards to the userDecksApp and populate the deck grid
+        userDecksApp.top10CardsInPotentialCombos = sortedCardCountsArray.slice(0, 10);
+        userDecksApp.searchPotentialComboCards();
     },
-    populateDeckGrid: (items, gridId, imageType, isTopTen = false) => {
+    populateDeckGrid: (items, gridId, imageType, isTopTen = false, showFullCard = false) => {
         const gridSection = document.getElementById(gridId);
         gridSection.innerHTML = "";
 
         items.forEach((item, idx) => {
             const isCommanderImage = (imageType === 'commanders');
             const imageUrl = (isCommanderImage) ? item['commanders'][0]['image_url'] : item['image_url'];
-            const deckCell = userDecksApp.createDeckCell(
-                item, imageUrl, idx, isTopTen, isCommanderImage
-            );
+            const deckCell = userDecksApp.createDeckCell(item, imageUrl, idx, isTopTen, isCommanderImage, showFullCard);
             gridSection.appendChild(deckCell);
         });
     },
-    createDeckCell: (item, imageUrl, idx, isTopTen, commanderDeck = false) => {
+    createDeckCell: (item, imageUrl, idx, isTopTen, commanderDeck = false, showFullCard = false) => {
         const deckCell = document.createElement('div');
         deckCell.className = 'user_moxfield_deck';
         deckCell.style.width = '300px';
         deckCell.style.height = '200px';
         deckCell.style.backgroundSize = 'cover';
         deckCell.style.backgroundImage = `radial-gradient(transparent, rgb(0, 0, 0)), url("${imageUrl}")`;
+
+        // if we are showing the full card increase the height
+        if (showFullCard) {
+            deckCell.style.height = '400px';
+        }
 
         // if it is a commander deck set the deck id as the attribute data-deck-id to be used with modal opening
         if (commanderDeck) {
@@ -178,8 +218,7 @@ const userDecksApp = {
             deckCell.appendChild(userDecksApp.createLabel(commanderText));
         }
         return deckCell;
-    },
-    createLabel: (text, title = false) => {
+    }, createLabel: (text, title = false) => {
         const container = document.createElement('div');
         container.className = (title) ? 'deck_label sub_title' : 'deck_label';
 
@@ -202,6 +241,44 @@ const userDecksApp = {
             }
         }
         return cookieValue;
+    },
+    countCardsInPotentialCombos: () => {
+        // First check that we have an instance of the moxfield user
+        if (!userDecksApp.moxfieldUser) {
+            return;
+        }
+        // Start an object to keep track of all the counts of cards in each of the combos
+        const cardCountsObject = {};
+
+        // For each deck in the moxfield user instance, count the cards needed in the potential combos
+        userDecksApp.moxfieldUser['edh_decks'].forEach(deck => {
+            // First get all the cards in the deck, so we can see what cards we are missing
+            const cardNamesInDeck = userDecksApp.getCardNamesInDeck(deck);
+
+            // Get the Cards from the potential combos
+            const cardsInCombos = [];
+            deck['potential_combos'].forEach(({ uses }) => {
+                uses.forEach(({ card }) => cardsInCombos.push(card.name));
+            });
+
+            // For each card in the combo, check if it's not in the deck and then count up the items
+            cardsInCombos.forEach(card => {
+                if (!cardNamesInDeck.includes(card)) {
+                    if (card in cardCountsObject) {
+                        cardCountsObject[card]['count'] += 1;
+                        if (!cardCountsObject[card]['decks'].includes(deck.name)) {
+                            cardCountsObject[card]['decks'].push(deck.name);
+                        }
+                    } else {
+                        cardCountsObject[card] = {
+                            'count': 1,
+                            'decks': [deck.name]
+                        };
+                    }
+                }
+            });
+        });
+        return cardCountsObject;
     },
     showErrorNotification: (errorMessage) => {
         // Create a Bulma Notification and add it to the DOM
