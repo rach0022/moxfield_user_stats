@@ -186,11 +186,14 @@ const userDecksApp = {
         items.forEach((item, idx) => {
             const isCommanderImage = (imageType === 'commanders');
             const imageUrl = (isCommanderImage) ? item['commanders'][0]['image_url'] : item['image_url'];
-            const deckCell = userDecksApp.createDeckCell(item, imageUrl, idx, isTopTen, isCommanderImage, showFullCard);
+            const deckCell = userDecksApp.createDeckCell(
+                item, imageUrl, idx, isTopTen, isCommanderImage, showFullCard,
+                (items[idx]['combos_found']) ? items[idx]['combos_found'].length : 0
+            );
             gridSection.appendChild(deckCell);
         });
     },
-    createDeckCell: (item, imageUrl, idx, isTopTen, commanderDeck = false, showFullCard = false) => {
+    createDeckCell: (item, imageUrl, idx, isTopTen, commanderDeck = false, showFullCard = false, comboCount = 0) => {
         const deckCell = document.createElement('div');
         deckCell.className = 'user_moxfield_deck';
         deckCell.style.width = '300px';
@@ -201,6 +204,7 @@ const userDecksApp = {
         // if we are showing the full card increase the height
         if (showFullCard) {
             deckCell.style.height = '400px';
+            deckCell.style.backgroundImage = `url("${imageUrl}")`;
         }
 
         // if it is a commander deck set the deck id as the attribute data-deck-id to be used with modal opening
@@ -210,20 +214,56 @@ const userDecksApp = {
         }
 
         if (isTopTen) {
-            deckCell.appendChild(userDecksApp.createLabel(`${item.name} (${item['quantity']})`, true));
-            deckCell.appendChild(userDecksApp.createLabel(`Rank ${idx + 1}`));
+            const cardNameLabel = userDecksApp.createLabel(`${item.name} (${item['quantity']})`, true);
+            const cardRankLabel = userDecksApp.createLabel(`Rank ${idx + 1}`);
+
+            // If we are showing the full card we need to invert the text and add a black text shadow to border
+            if (showFullCard) {
+                cardNameLabel.style.color = '#FFFFFF';
+                cardNameLabel.style.textShadow = '0 0 4px black, 0 0 4px black, 0 0 4px black, 0 0 4px black, 0 0 4px black';
+                cardRankLabel.style.color = '#FFFFFF';
+                cardRankLabel.style.textShadow = '0 0 4px black, 0 0 4px black, 0 0 4px black, 0 0 4px black, 0 0 4px black';
+            }
+            deckCell.appendChild(cardNameLabel);
+            deckCell.appendChild(cardRankLabel);
         } else {
+            // Show the deck name first and underneath show the commander name
             const commanderText = item['commanders'].map(commander => commander.name).join(",");
-            deckCell.appendChild(userDecksApp.createLabel(item.name, true));
-            deckCell.appendChild(userDecksApp.createLabel(commanderText));
+            const commanderTextTitle = userDecksApp.createLabel(item.name, true);
+            commanderTextTitle.style.marginBottom = '0';
+            commanderTextTitle.appendChild(userDecksApp.createLabel(commanderText, false, true));
+            deckCell.appendChild(commanderTextTitle);
+
+            // Create the div that holds the tags for the commander deck
+            const commanderTextDiv = document.createElement('div');
+            commanderTextDiv.className = 'commander_deck_label';
+            commanderTextDiv.style.width = '100% !important';
+            commanderTextDiv.style.marginBottom = '0.5em';
+            commanderTextDiv.style.marginRight = '1em';
+
+            // Create the tag that shows the number of combos on the deck
+            const commanderComboTag = document.createElement('span');
+            commanderComboTag.className = `tag ${(comboCount > 0) ? 'is-success' : 'is-warning'}`;
+            commanderComboTag.textContent = `Combos (${comboCount})`;
+
+            // Add the tag to the text div and then to the deck cell
+            commanderTextDiv.appendChild(commanderComboTag);
+            deckCell.appendChild(commanderTextDiv);
         }
         return deckCell;
-    }, createLabel: (text, title = false) => {
+    },
+    createLabel: (text, title = false, small = false) => {
         const container = document.createElement('div');
         container.className = (title) ? 'deck_label sub_title' : 'deck_label';
 
+        if (small) {
+            container.classList.add('is-size-7');
+            container.classList.add('has-text-left');
+        }
+
         const p = document.createElement('p');
         p.textContent = text;
+        p.style.marginBottom = (title) ? 0 : p.style.marginBottom;
         container.appendChild(p);
 
         return container;
@@ -301,9 +341,7 @@ const userDecksApp = {
         mainSection.parentNode.insertBefore(notificationNode, mainSection);
 
         // start a timeOut to delete the notification after 3 seconds
-        setTimeout(() => {
-            notificationNode.parentNode.removeChild(notificationNode);
-        }, 3000);
+        setTimeout(() => notificationNode.parentNode.removeChild(notificationNode), 3000);
     }
 };
 

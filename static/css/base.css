@@ -29,3 +29,11 @@
 .user_moxfield_deck:hover {
     box-shadow: inset 0 0 1px 3px #C999E6;
 }
+
+.commander_deck_label {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100% !important;
+}
