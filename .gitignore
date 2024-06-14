@@ -8,3 +8,4 @@ config/moxfield_user_stats_secrets.json
 staticfiles/
 .DS_Store
 */.DS_Store
+react_app/package-lock.json

@@ -1,0 +1,1 @@
+from user_stats_app.views.serializers.base import HealthCheckSerializer

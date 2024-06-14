@@ -17,7 +17,7 @@ const userDecksApp = {
         userDecksApp.top10CardsInPotentialCombos = null;
         searchButton.classList.add('is-loading');
 
-        fetch('/search', {
+        fetch('/search/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json', 'X-CSRFToken': userDecksApp.getCsrfToken()
@@ -45,7 +45,7 @@ const userDecksApp = {
         const cardToFindArray = userDecksApp.top10CardsInPotentialCombos.map(card => [card[0], card[1]['count']]);
 
         // Make the post request to the back-end to get the scryfall info
-        fetch('/get_card_scryfall_info', {
+        fetch('/get_card_scryfall_info/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json', 'X-CSRFToken': userDecksApp.getCsrfToken()
