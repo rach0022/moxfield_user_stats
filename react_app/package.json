@@ -1,29 +1,33 @@
 {
   "name": "react_app",
+  "description": "The Front End Application to display the Moxfield User Stats for any user",
   "version": "0.1.0",
   "private": true,
+  "author": "Ravichandra Rachamalla <rachamr@algonquincollege.com>",
+  "license": "ISC",
   "dependencies": {
+    "@svgr/webpack": "^8.1.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.2",
+    "bulma": "^1.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-redux": "^9.1.2",
-    "react-scripts": "^3.0.1",
+    "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+  "devDependencies": {
+    "@babel/core": "^7.24.7",
+    "@babel/preset-react": "^7.24.7",
+    "file-loader": "^6.2.0",
+    "webpack-bundle-tracker": "^3.1.0",
+    "webpack-cli": "^5.1.4"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
+  "scripts": {
+    "build": "webpack --mode production --config webpack/webpack.config.js",
+    "dev": "webpack --mode development --config webpack/webpack.config.js --stats-error-details --watch"
   },
   "browserslist": {
     "production": [
@@ -36,8 +40,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "webpack-bundle-tracker": "^3.1.0"
   }
 }

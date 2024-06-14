@@ -10,7 +10,7 @@ from utils import time_function
 
 
 def home(request):
-    return render(request, 'user_stats_app/user_decks.html')
+    return render(request, 'react_app/react_base.html')
 
 
 def search_user_decks(request):
