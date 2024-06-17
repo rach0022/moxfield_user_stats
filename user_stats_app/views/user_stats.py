@@ -29,8 +29,9 @@ def search_user_decks(request):
 
         # Transform the response into EDHDeckList objects
         user_deck_list = []
+        acceptable_formats = ['commanderPrecons', 'commander']
         for edh_deck in user_deck_list_response:
-            if edh_deck['format'] == "commander" and edh_deck['isLegal']:
+            if edh_deck['format'] in acceptable_formats and edh_deck['isLegal']:
                 user_deck_list.append(MagicDeckList.from_json(edh_deck))
 
         # Now with each MagicDeckList we can load the actual deck-lists from moxfield

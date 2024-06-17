@@ -2,10 +2,13 @@ import React from "react";
 import { useSelectedEDHDeck } from "../../providers/SelectedEDHDeckContextProvider";
 
 
-export default function EDHDeckListItem({ deck, isCard = false, fullCard = false, index }) {
+export default function EDHDeckListItem({ deck, isCard = false, fullCard = false, index, openModal }) {
     // context provider function to set the selected EDH Deck
     const { setSelectedEDHDeck } = useSelectedEDHDeck();
-    const handleEDHDeckClick = () => setSelectedEDHDeck(deck);
+    const handleEDHDeckClick = () => {
+        setSelectedEDHDeck(deck);
+        openModal();
+    };
 
     // Check if we are showing an actual MTG card or a full deck list
     if (isCard) {

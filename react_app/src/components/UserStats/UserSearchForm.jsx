@@ -26,7 +26,16 @@ export default function UserSearchForm({}) {
 
     // UseEffect hook to set the selected user when the request is completed
     useEffect(() => {
-        setSelectedMoxfieldUser((data) ? { ...data['moxfield_user'], topTenCards: data['top_ten_cards'] } : {});
+        setSelectedMoxfieldUser(
+            (data)
+                ? {
+                    ...data['moxfield_user'],
+                    topTenCards: data['top_ten_cards'],
+                    averageCMC: data['average_cmc'],
+                    averageLands: data['average_lands']
+                }
+                : {}
+        );
     }, [data]);
 
     return (
@@ -72,12 +81,29 @@ export default function UserSearchForm({}) {
             {error && <p style={{ color: 'red' }}>{error}</p>}
             {
                 (selectedUser?.edh_decks)
-                    ? (<EDHDeckList decks={selectedUser['edh_decks']} />)
+                    ? (
+                        <>
+                            <h4 className={'title'}>Found Decks ({selectedUser['edh_decks'].length})</h4>
+                            <EDHDeckList decks={selectedUser['edh_decks']} />
+                        </>
+                    )
                     : null
             }
             {
                 (selectedUser?.topTenCards)
-                    ? (<EDHDeckList decks={selectedUser['topTenCards']} isCardList={true} />)
+                    ? (
+                        <>
+                            <div className={'content'}>
+                                <h4 className="title">Statistics Across All Decks:</h4>
+                                <h6 className="title">Average CMC</h6>
+                                <p>{parseFloat(selectedUser['averageCMC']).toFixed(2)}</p>
+                                <h6 className="title">Average Lands</h6>
+                                <p>{parseFloat(selectedUser['averageLands']).toFixed(2)}</p>
+                                <h6 className={'title'}>Top Ten Cards Across All Decks:</h6>
+                                <EDHDeckList decks={selectedUser['topTenCards']} isCardList={true} />
+                            </div>
+                        </>
+                    )
                     : null
             }
         </>
