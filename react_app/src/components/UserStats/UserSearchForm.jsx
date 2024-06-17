@@ -75,6 +75,11 @@ export default function UserSearchForm({}) {
                     ? (<EDHDeckList decks={selectedUser['edh_decks']} />)
                     : null
             }
+            {
+                (selectedUser?.topTenCards)
+                    ? (<EDHDeckList decks={selectedUser['topTenCards']} isCardList={true} />)
+                    : null
+            }
         </>
     );
 };
