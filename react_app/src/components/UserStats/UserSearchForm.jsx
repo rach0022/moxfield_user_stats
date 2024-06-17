@@ -1,12 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { search } from '../../redux/actions/searchActions';
 import { useCSRFToken } from "../../providers/CSRFTokenContextProvider";
+import { useSelectedMoxfieldUser } from '../../providers/SelectedMoxfieldUserContextProvider.jsx';
+import EDHDeckList from "./EDHDeckList";
 
 export default function UserSearchForm({}) {
+    // state variables to store user options
     const [userName, setUserName] = useState('');
     const [includeLandsValue, setIncludeLandsValue] = useState(false);
+
+    // get the csrfToken from the context provider to be used in the request to the django web server
     const csrfToken = useCSRFToken();
+
+    // to set the selectedUser and selectedEDHDeck
+    const { setSelectedMoxfieldUser, selectedUser } = useSelectedMoxfieldUser();
 
     const dispatch = useDispatch();
     const { loading, data, error } = useSelector((state) => state.search);
@@ -16,8 +24,10 @@ export default function UserSearchForm({}) {
         dispatch(search(userName, includeLandsValue, csrfToken));
     };
 
-    // TODO: Show the results from Data and build the EDHDeckList and Card Recommendations
-    console.log(data);
+    // UseEffect hook to set the selected user when the request is completed
+    useEffect(() => {
+        setSelectedMoxfieldUser((data) ? { ...data['moxfield_user'], topTenCards: data['top_ten_cards'] } : {});
+    }, [data]);
 
     return (
         <>
@@ -32,6 +42,12 @@ export default function UserSearchForm({}) {
                         value={userName}
                         onChange={(e) => setUserName(e.target.value)}
                         placeholder="Search by Moxfield Username"
+                        onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                                setUserName(event.currentTarget.value);
+                                handleSearch();
+                            }
+                        }}
                     />
                 </div>
                 <div className={'control'}>
@@ -46,17 +62,19 @@ export default function UserSearchForm({}) {
             </div>
 
             <label className={'checkbox'}>
-                Include Lands
                 <input
                     type="checkbox"
                     checked={includeLandsValue}
                     onChange={(e) => setIncludeLandsValue(e.target.checked)}
                 />
+                Include Lands
             </label>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-            {data && <div>
-                {/* Render your search results here */}
-            </div>}
+            {
+                (selectedUser?.edh_decks)
+                    ? (<EDHDeckList decks={selectedUser['edh_decks']} />)
+                    : null
+            }
         </>
     );
 };
