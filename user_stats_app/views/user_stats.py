@@ -2,6 +2,7 @@ import json
 
 from django.http import JsonResponse
 from django.shortcuts import render
+from rest_framework import status
 
 from exceptions import UserNotFoundException
 from user_stats_app.core import MoxFieldAgent, MagicDeckList, EDHDeckList, MoxFieldUser, CommanderSpellBookAgent, \
@@ -25,7 +26,7 @@ def search_user_decks(request):
         try:
             user_deck_list_response = moxfield_agent.get_user_decks()
         except UserNotFoundException as error:
-            return JsonResponse(dict(error=str(error)))
+            return JsonResponse(dict(error=str(error)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Transform the response into EDHDeckList objects
         user_deck_list = []
@@ -33,6 +34,14 @@ def search_user_decks(request):
         for edh_deck in user_deck_list_response:
             if edh_deck['format'] in acceptable_formats and edh_deck['isLegal']:
                 user_deck_list.append(MagicDeckList.from_json(edh_deck))
+
+        if len(user_deck_list) == 0:
+            return JsonResponse(
+                data=dict(
+                    error=f"The user {user_name} does not have any commander decks or pre-constructed  commander decks on their Moxfield Account."
+                ),
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
         # Now with each MagicDeckList we can load the actual deck-lists from moxfield
         deck_cards_list = []

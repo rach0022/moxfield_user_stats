@@ -43,7 +43,7 @@ export const search = (userName, includeLandsValue, CSRFToken) => {
                 dispatch(searchFailure(data)); // Dispatching the failure action
             }
         } catch (error) {
-            dispatch(searchFailure(error.toString())); // Dispatching the failure action in case of an error
+            dispatch(searchFailure(error['response']['data']['error'].toString())); // Dispatching the failure action in case of an error
         }
     };
 };

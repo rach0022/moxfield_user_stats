@@ -4,6 +4,7 @@ import { search } from '../../redux/actions/searchActions';
 import { useCSRFToken } from "../../providers/CSRFTokenContextProvider";
 import { useSelectedMoxfieldUser } from '../../providers/SelectedMoxfieldUserContextProvider.jsx';
 import EDHDeckList from "./EDHDeckList";
+import BulmaNotification from "../Bulma/BulmaNotification";
 
 export default function UserSearchForm({}) {
     // state variables to store user options
@@ -78,7 +79,7 @@ export default function UserSearchForm({}) {
                 />
                 Include Lands
             </label>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <BulmaNotification message={error} type="is-danger" />}
             {
                 (selectedUser?.edh_decks)
                     ? (
