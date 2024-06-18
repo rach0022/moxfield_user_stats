@@ -2,7 +2,16 @@ import React, { useState, useEffect } from 'react';
 import BulmaModal from "../Bulma/BulmaModal";
 import { getCardNamesInDeck } from "../utils/";
 
-
+/**
+ * Component to render a single combo with its uses and description.
+ *
+ * @component
+ * @param {Object} props - React props object.
+ * @param {Object} props.combo - The combo object containing 'uses' and 'description'.
+ * @param {string[]} [props.cardNamesInDeck] - Array of card names present in the deck to mark required cards.
+ * @param {number} props.indexCount - Index of the combo in the list.
+ * @returns {JSX.Element} - Returns JSX for rendering the combo list item.
+ */
 function ComboList({ combo, cardNamesInDeck, indexCount }) {
     return (
         <>
@@ -25,6 +34,16 @@ function ComboList({ combo, cardNamesInDeck, indexCount }) {
     );
 }
 
+/**
+ * Modal component to display detailed information about an EDH deck, including statistics and combos.
+ *
+ * @component
+ * @param {Object} props - React props object.
+ * @param {Object} props.deck - The EDH deck object to display in the modal.
+ * @param {boolean} props.isModalOpen - Flag indicating if the modal is open.
+ * @param {Function} props.setIsModalOpen - Function to toggle the modal visibility.
+ * @returns {JSX.Element | null} - Returns JSX for rendering the EDH deck modal or null if deck is not set.
+ */
 export default function EDHDeckModal({ deck, isModalOpen, setIsModalOpen }) {
     const [cardNamesInDeck, setCardNamesInDeck] = useState([]);
 

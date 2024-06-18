@@ -5,13 +5,21 @@ import { useCSRFToken } from "../../providers/CSRFTokenContextProvider";
 import { useSelectedMoxfieldUser } from '../../providers/SelectedMoxfieldUserContextProvider.jsx';
 import EDHDeckList from "./EDHDeckList";
 import BulmaNotification from "../Bulma/BulmaNotification";
+import TopTenCardsInPotentialCombosList from './TopTenCardsInPotentialCombosList.jsx';
 
+/**
+ * UserSearchForm component handles searching for a Moxfield user and displaying their EDH decks and statistics.
+ *
+ * @component
+ * @param {Object} props - React props object (currently no props are passed).
+ * @returns {JSX.Element} - Returns JSX for rendering the user search form and displaying user data.
+ */
 export default function UserSearchForm({}) {
     // state variables to store user options
     const [userName, setUserName] = useState('');
     const [includeLandsValue, setIncludeLandsValue] = useState(false);
 
-    // get the csrfToken from the context provider to be used in the request to the django web server
+    // get the csrfToken from the context provider to be used in the request to the Django web server
     const csrfToken = useCSRFToken();
 
     // to set the selectedUser and selectedEDHDeck
@@ -20,8 +28,9 @@ export default function UserSearchForm({}) {
     const dispatch = useDispatch();
     const { loading, data, error } = useSelector((state) => state.search);
 
+    // Handles the search action when the Search button is clicked or Enter is pressed in the input field.
     const handleSearch = () => {
-        // Dispatch search action with the username from moxfield and if they are including lands in stats
+        // Dispatch search action with the username from Moxfield and if including lands in stats
         dispatch(search(userName, includeLandsValue, csrfToken));
     };
 
@@ -41,6 +50,7 @@ export default function UserSearchForm({}) {
 
     return (
         <>
+            {/* Input for Moxfield Username */}
             <label className={'label'}>
                 Moxfield Username
             </label>
@@ -71,6 +81,7 @@ export default function UserSearchForm({}) {
                 </div>
             </div>
 
+            {/* Checkbox to include Lands */}
             <label className={'checkbox'}>
                 <input
                     type="checkbox"
@@ -79,7 +90,11 @@ export default function UserSearchForm({}) {
                 />
                 Include Lands
             </label>
+
+            {/* Display error notification if there's an error */}
             {error && <BulmaNotification message={error} type="is-danger" />}
+
+            {/* Display found EDH decks if selectedUser has them */}
             {
                 (selectedUser?.edh_decks)
                     ? (
@@ -90,6 +105,8 @@ export default function UserSearchForm({}) {
                     )
                     : null
             }
+
+            {/* Display statistics if selectedUser has them */}
             {
                 (selectedUser?.topTenCards)
                     ? (
@@ -105,6 +122,13 @@ export default function UserSearchForm({}) {
                             </div>
                         </>
                     )
+                    : null
+            }
+
+            {/* Display top ten cards in potential combos if selectedUser has EDH decks */}
+            {
+                (selectedUser?.edh_decks)
+                    ? (<TopTenCardsInPotentialCombosList moxfieldUser={selectedUser} />)
                     : null
             }
         </>

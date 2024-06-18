@@ -1,17 +1,17 @@
 import { combineReducers } from 'redux';
 import { configureStore } from '@reduxjs/toolkit';
-import { thunk } from 'redux-thunk';
 import searchReducer from './reducers/searchReducer';
+import scryfallReducer from './slicers/scryfallSlice.js';
 
 // Combine reducers
 const rootReducer = combineReducers({
     search: searchReducer,
+    cards: scryfallReducer
 });
 
 // Create the Redux store with thunk middleware
 const store = configureStore({
     reducer: rootReducer,
-    middleware: [thunk],
 });
 
 export default store;
