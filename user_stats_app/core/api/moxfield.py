@@ -13,6 +13,7 @@ class MoxFieldAgent(BaseAPIAgent):
 
     def get_user_decks(self):
         mox_field_user_api_url = f"https://api.moxfield.com/v2/users/{self.username}/decks?pageNumber=1&pageSize=99999"
+        # TODO: Look into this request https://api2.moxfield.com/v2/decks
         api_request = requests.get(mox_field_user_api_url, headers=self.generate_request_header())
         json_response = json.loads(api_request.text)
         if api_request.status_code == 404 and json_response['title'] == 'Not Found':
