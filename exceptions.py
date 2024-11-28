@@ -26,3 +26,16 @@ class ScryfallCardNotFoundException(requests.exceptions.HTTPError):
 
     def __str__(self):
         return f"-- The Card: {self.card_name} was not found on Scryfall. {self.message}"
+
+
+class MoxfieldAPIException(requests.exceptions.HTTPError):
+    http_status_code: int
+
+    def __init__(self, message="", errors=BaseException(), http_status_code=500):
+        super().__init__(message)
+        self.message = message
+        self.errors = errors
+        self.http_status_code = http_status_code
+
+    def __str__(self):
+        return f"-- There was an error with the Moxfield API: HTTP Status Code: {self.http_status_code}"

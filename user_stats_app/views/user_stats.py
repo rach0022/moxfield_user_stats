@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from rest_framework import status
 
-from exceptions import UserNotFoundException
+from exceptions import UserNotFoundException, MoxfieldAPIException
 from user_stats_app.core import MoxFieldAgent, MagicDeckList, EDHDeckList, MoxFieldUser, CommanderSpellBookAgent, \
     ScryfallAgent
 from utils import time_function
@@ -26,6 +26,8 @@ def search_user_decks(request):
         try:
             user_deck_list_response = moxfield_agent.get_user_decks()
         except UserNotFoundException as error:
+            return JsonResponse(dict(error=str(error)), status=status.HTTP_404_NOT_FOUND)
+        except MoxfieldAPIException as error:
             return JsonResponse(dict(error=str(error)), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         # Transform the response into EDHDeckList objects
