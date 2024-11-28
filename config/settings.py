@@ -14,7 +14,7 @@ from pathlib import Path
 import os
 
 app_env = os.getenv('APP_ENV', 'development')
-config_file_name = 'config/moxfield_user_stats_secrets_template.json' if app_env == 'test' else 'config/moxfield_user_stats_secrets.json'
+config_file_name = 'config/secrets/moxfield_user_stats_secrets_template.json' if app_env == 'test' else 'config/secrets/moxfield_user_stats_secrets.json'
 CONFIG_FILE = open(config_file_name, 'r')
 ENV_CONFIG = json.load(CONFIG_FILE)
 
@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Third Party Libraries:
+    'rest_framework',
+    'corsheaders',
+    'webpack_loader',
     # Custom Django Apps:
     'user_stats_app.apps.UserStatsAppConfig',
 ]
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -62,7 +66,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'user_stats_app', "templates")
+            os.path.join(BASE_DIR, "templates")
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -127,6 +131,15 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Webpack settings for bundle tracking
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': not DEBUG,
+        'BUNDLE_DIR_NAME': 'js/react',
+        'STATS_FILE': os.path.join(BASE_DIR, 'static/js/react/webpack-stats.json')
+    }
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

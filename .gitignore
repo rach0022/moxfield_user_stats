@@ -3,8 +3,11 @@ __pycache__/
 dist
 build
 */__pycache__/
-config/moxfield_user_stats_secrets.json
+config/secrets/moxfield_user_stats_secrets.json
+config/secrets/.env-react
 .idea/
 staticfiles/
 .DS_Store
 */.DS_Store
+react_app/package-lock.json
+/static/js/react/*

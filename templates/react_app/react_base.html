@@ -1,0 +1,38 @@
+{% load static %}
+{% load render_bundle from webpack_loader %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+            content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {% block title %}
+        <title>User Stats App</title>
+    {% endblock title %}
+
+    {# Script Imports for specific libraries #}
+    {% block imports %}
+    {% endblock imports %}
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {# Imports for our Web Icons #}
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'img/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'img/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'img/site.webmanifest' %}">
+</head>
+<body>
+<main>
+    {# Where the React JS bundle will render#}
+    <div id="root"></div>
+    {% block content %}
+    {% endblock content %}
+</main>
+{# Main React Application #}
+{% render_bundle 'main' %}
+{# Page specific scripts #}
+{% block scripts %}
+{% endblock scripts %}
+</body>
+</html>
